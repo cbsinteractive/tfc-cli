@@ -1,3 +1,3 @@
-module github.com/cbsinteractive/query-tfc-state
+module github.com/cbsinteractive/tfc-cli
 
 go 1.16
