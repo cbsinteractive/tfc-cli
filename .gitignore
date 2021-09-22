@@ -18,3 +18,5 @@
 .envrc
 *.swp
 .DS_Store
+
+dist/
