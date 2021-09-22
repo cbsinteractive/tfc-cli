@@ -66,12 +66,18 @@ func TestStateVersionsCurrentGetOutput(t *testing.T) {
 		outputs       []*tfe.StateVersionOutput
 		expectedValue string
 	}{
-		{"some test", defaultEnv(), "some workspace id", "foo", []*tfe.StateVersionOutput{
-			{
-				Name:  "foo",
-				Value: "some value",
+		{
+			"output variable found",
+			defaultEnv(),
+			"some workspace id",
+			"foo",
+			[]*tfe.StateVersionOutput{
+				{
+					Name:  "foo",
+					Value: "some value",
+				},
 			},
-		}, "some value"},
+			"some value"},
 	}
 	for _, d := range testConfigs {
 		t.Run(d.name, func(t *testing.T) {
