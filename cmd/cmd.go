@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/go-tfe"
 )
 
+var Version = "development"
+
 type Usage string
 
 const (
@@ -54,6 +56,7 @@ func root(options ExecuteOpts, args []string, os dependencyCaller, w io.Writer) 
 	}
 	runners := []Runner{
 		NewStateVersionsCmd(os, w),
+		NewVersionCmd(w),
 	}
 	subcommand := args[0]
 	for _, r := range runners {
