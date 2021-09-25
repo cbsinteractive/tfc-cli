@@ -30,6 +30,7 @@ func (c *WorkspacesCmd) Init(args []string) error {
 	}
 	runners := []Runner{
 		newWorkspacesCreateCmd(c.deps, c.w, c.appName),
+		newWorkspacesDeleteCmd(c.deps, c.w),
 	}
 	return processSubcommand(&c.r, args, runners)
 }
