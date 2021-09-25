@@ -10,7 +10,13 @@ import (
 	"github.com/hashicorp/go-tfe"
 )
 
-var Version = "development"
+// Variables set at build time used to generate the version number
+var (
+	Major        string = "0"
+	Minor        string = "0"
+	Patch        string = "0"
+	ReleaseLabel string
+)
 
 type Usage string
 

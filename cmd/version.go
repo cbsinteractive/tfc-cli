@@ -1,6 +1,9 @@
 package cmd
 
-import "io"
+import (
+	"fmt"
+	"io"
+)
 
 type VersionCmd struct {
 	w io.Writer
@@ -21,7 +24,11 @@ func (c *VersionCmd) Init([]string) error {
 }
 
 func (c *VersionCmd) Run() error {
-	if _, err := c.w.Write([]byte(Version)); err != nil {
+	label := ""
+	if ReleaseLabel != "" {
+		label = fmt.Sprintf("-%s", ReleaseLabel)
+	}
+	if _, err := c.w.Write([]byte(fmt.Sprintf("%s.%s.%s%s", Major, Minor, Patch, label))); err != nil {
 		return err
 	}
 	return nil

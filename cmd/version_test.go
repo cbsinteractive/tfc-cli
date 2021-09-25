@@ -8,17 +8,36 @@ import (
 )
 
 func TestVersion(t *testing.T) {
-	args := []string{"version"}
-	options := ExecuteOpts{
-		AppName: "tfc-cli",
+	testConfigs := []struct {
+		description    string
+		major          string
+		minor          string
+		patch          string
+		label          string
+		expectedOutput string
+	}{
+		{"default", "1", "2", "3", "", "1.2.3"},
+		{"includes label", "1", "2", "3", "foo", "1.2.3-foo"},
 	}
-	var buff bytes.Buffer
-	if err := root(
-		options,
-		args,
-		defaultFakeDeps{},
-		&buff); err != nil {
-		t.Fatal(err)
+	for _, d := range testConfigs {
+		t.Run(d.description, func(t *testing.T) {
+			Major = d.major
+			Minor = d.minor
+			Patch = d.patch
+			ReleaseLabel = d.label
+			args := []string{"version"}
+			options := ExecuteOpts{
+				AppName: "tfc-cli",
+			}
+			var buff bytes.Buffer
+			if err := root(
+				options,
+				args,
+				defaultFakeDeps{},
+				&buff); err != nil {
+				t.Fatal(err)
+			}
+			assert.Equal(t, d.expectedOutput, buff.String())
+		})
 	}
-	assert.Equal(t, "development", buff.String())
 }

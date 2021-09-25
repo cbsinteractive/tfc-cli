@@ -14,6 +14,10 @@ builds:
       - linux
       - windows
       - darwin
+    ldflags:
+      - -X github.com/cbsinteractive/tfc-cli/cmd.Major={{ .Major }}
+      - -X github.com/cbsinteractive/tfc-cli/cmd.Minor={{ .Minor }}
+      - -X github.com/cbsinteractive/tfc-cli/cmd.Patch={{ .Patch }}
 dockers:
   - goos: linux
     goarch: amd64
