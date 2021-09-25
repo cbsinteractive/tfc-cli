@@ -10,6 +10,14 @@ import (
 	"github.com/hashicorp/go-tfe"
 )
 
+// Variables set at build time used to generate the version number
+var (
+	Major        string = "0"
+	Minor        string = "0"
+	Patch        string = "0"
+	ReleaseLabel string
+)
+
 type Usage string
 
 const (
@@ -54,6 +62,7 @@ func root(options ExecuteOpts, args []string, os dependencyCaller, w io.Writer) 
 	}
 	runners := []Runner{
 		NewStateVersionsCmd(os, w),
+		NewVersionCmd(w),
 	}
 	subcommand := args[0]
 	for _, r := range runners {
