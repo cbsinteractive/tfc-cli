@@ -10,6 +10,7 @@ import (
 func main() {
 	options := cmd.ExecuteOpts{
 		AppName: "tfc-cli",
+		Writer:  os.Stdout,
 	}
 	if err := cmd.Execute(options); err != nil {
 		fmt.Println(err)

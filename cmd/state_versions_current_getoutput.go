@@ -17,7 +17,7 @@ type OutputOpts struct {
 
 type StateVersionsCurrentGetOutputCmd struct {
 	fs   *flag.FlagSet
-	deps dependencyCaller
+	deps dependencyProxies
 	OrgOpts
 	WorkspaceOpts
 	OutputOpts
@@ -25,7 +25,7 @@ type StateVersionsCurrentGetOutputCmd struct {
 }
 
 func NewStateVersionsCurrentGetOutputCmd(
-	deps dependencyCaller,
+	deps dependencyProxies,
 	w io.Writer,
 ) *StateVersionsCurrentGetOutputCmd {
 	c := &StateVersionsCurrentGetOutputCmd{
@@ -48,7 +48,11 @@ func (c *StateVersionsCurrentGetOutputCmd) Init(args []string) error {
 	if err := c.fs.Parse(args); err != nil {
 		return err
 	}
-	if err := processCommonInputs(&c.OrgOpts.token, &c.OrgOpts.name, c.deps); err != nil {
+	if err := processCommonInputs(
+		&c.OrgOpts.token,
+		&c.OrgOpts.name,
+		c.deps.os.lookupEnv,
+	); err != nil {
 		return err
 	}
 	if c.WorkspaceOpts.name == "" {
@@ -68,11 +72,11 @@ func (c *StateVersionsCurrentGetOutputCmd) Run() error {
 	if err != nil {
 		return err
 	}
-	w, err := c.deps.clientWorkspacesRead(client, ctx, c.OrgOpts.name, c.WorkspaceOpts.name)
+	w, err := c.deps.client.workspaces.read(client, ctx, c.OrgOpts.name, c.WorkspaceOpts.name)
 	if err != nil {
 		return err
 	}
-	version, err := c.deps.clientStateVersionsCurrentWithOptions(
+	version, err := c.deps.client.stateVersions.currentWithOptions(
 		client,
 		ctx,
 		w.ID,

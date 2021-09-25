@@ -2,20 +2,19 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"io"
 )
 
 type StateVersionsCmd struct {
-	r  Runner
-	os dependencyCaller
-	w  io.Writer
+	r    Runner
+	deps dependencyProxies
+	w    io.Writer
 }
 
-func NewStateVersionsCmd(os dependencyCaller, w io.Writer) *StateVersionsCmd {
+func NewStateVersionsCmd(deps dependencyProxies, w io.Writer) *StateVersionsCmd {
 	return &StateVersionsCmd{
-		os: os,
-		w:  w,
+		deps: deps,
+		w:    w,
 	}
 }
 
@@ -28,19 +27,9 @@ func (c *StateVersionsCmd) Init(args []string) error {
 		return errors.New("no subcommand given")
 	}
 	runners := []Runner{
-		NewStateVersionsCurrentCmd(c.os, c.w),
+		NewStateVersionsCurrentCmd(c.deps, c.w),
 	}
-	subcommand := args[0]
-	for _, r := range runners {
-		if r.Name() == subcommand {
-			if err := r.Init(args[1:]); err != nil {
-				return err
-			}
-			c.r = r
-			return nil
-		}
-	}
-	return fmt.Errorf("unexpected subcommand: %s", subcommand)
+	return processSubcommand(&c.r, args, runners)
 }
 
 func (c *StateVersionsCmd) Run() error {

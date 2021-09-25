@@ -26,15 +26,16 @@ func TestVersion(t *testing.T) {
 			Patch = d.patch
 			ReleaseLabel = d.label
 			args := []string{"version"}
+			var buff bytes.Buffer
 			options := ExecuteOpts{
 				AppName: "tfc-cli",
+				Writer:  &buff,
 			}
-			var buff bytes.Buffer
 			if err := root(
 				options,
 				args,
-				defaultFakeDeps{},
-				&buff); err != nil {
+				dependencyProxies{},
+			); err != nil {
 				t.Fatal(err)
 			}
 			assert.Equal(t, d.expectedOutput, buff.String())

@@ -1,13 +1,10 @@
 package cmd
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
 	"os"
-
-	"github.com/hashicorp/go-tfe"
 )
 
 // Variables set at build time used to generate the version number
@@ -53,16 +50,27 @@ type CommandResult struct {
 }
 
 func Execute(options ExecuteOpts) error {
-	return root(options, os.Args[1:], productionDependencyCaller{}, os.Stdout)
+	return root(
+		options,
+		os.Args[1:],
+		dependencyProxies{
+			client: clientProxy{
+				stateVersions: newStateVersionsProxy(),
+				workspaces:    newWorkspacesProxy(),
+			},
+			os: newOSProxy(),
+		},
+	)
 }
 
-func root(options ExecuteOpts, args []string, os dependencyCaller, w io.Writer) error {
+func root(options ExecuteOpts, args []string, deps dependencyProxies) error {
 	if len(args) < 1 {
 		return errors.New("no subcommand given")
 	}
 	runners := []Runner{
-		NewStateVersionsCmd(os, w),
-		NewVersionCmd(w),
+		NewStateVersionsCmd(deps, options.Writer),
+		NewVersionCmd(options.Writer),
+		NewWorkspacesCmd(options, deps),
 	}
 	subcommand := args[0]
 	for _, r := range runners {
@@ -76,45 +84,24 @@ func root(options ExecuteOpts, args []string, os dependencyCaller, w io.Writer) 
 	return fmt.Errorf("unknown subcommand: %s", subcommand)
 }
 
-type dependencyCaller interface {
-	osLookupEnv(string) (string, bool)
-	clientWorkspacesRead(*tfe.Client, context.Context, string, string) (*tfe.Workspace, error)
-	clientStateVersionsCurrentWithOptions(
-		*tfe.Client,
-		context.Context,
-		string,
-		*tfe.StateVersionCurrentOptions,
-	) (*tfe.StateVersion, error)
+func processSubcommand(childRunner *Runner, args []string, childRunners []Runner) error {
+	subcommand := args[0]
+	for _, r := range childRunners {
+		if r.Name() == subcommand {
+			if err := r.Init(args[1:]); err != nil {
+				return err
+			}
+			*childRunner = r
+			return nil
+		}
+	}
+	return fmt.Errorf("unexpected subcommand: %s", subcommand)
 }
 
-type productionDependencyCaller struct{}
-
-func (c productionDependencyCaller) osLookupEnv(key string) (string, bool) {
-	return os.LookupEnv(key)
-}
-
-func (c productionDependencyCaller) clientWorkspacesRead(
-	client *tfe.Client,
-	ctx context.Context,
-	organization string,
-	workspace string,
-) (*tfe.Workspace, error) {
-	return client.Workspaces.Read(ctx, organization, workspace)
-}
-
-func (c productionDependencyCaller) clientStateVersionsCurrentWithOptions(
-	client *tfe.Client,
-	ctx context.Context,
-	workspaceID string,
-	options *tfe.StateVersionCurrentOptions,
-) (*tfe.StateVersion, error) {
-	return client.StateVersions.CurrentWithOptions(ctx, workspaceID, options)
-}
-
-func processCommonInputs(token *string, orgName *string, os dependencyCaller) error {
+func processCommonInputs(token *string, orgName *string, lookupEnv func(string) (string, bool)) error {
 	if *token == "" {
 		var ok bool
-		*token, ok = os.osLookupEnv("TFC_TOKEN")
+		*token, ok = lookupEnv("TFC_TOKEN")
 		if !ok {
 			return errors.New(
 				"org token must be provided via the -token argument or by setting the TFC_TOKEN environment variable",
@@ -123,7 +110,7 @@ func processCommonInputs(token *string, orgName *string, os dependencyCaller) er
 	}
 	if *orgName == "" {
 		var ok bool
-		*orgName, ok = os.osLookupEnv("TFC_ORG")
+		*orgName, ok = lookupEnv("TFC_ORG")
 		if !ok {
 			return errors.New(
 				"org name must be provided via the -org argument or by setting the TFC_ORG environment variable",
