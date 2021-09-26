@@ -5,20 +5,20 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/hashicorp/go-tfe"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestWorkspacesVariablesUpdate(t *testing.T) {
 	testConfigs := []struct {
-		description               string
-		args                      []string
-		workspaceID               string
-		listVariables             *tfe.VariableList
-		updatedVariable           *tfe.Variable
-		expectedUpdateWorkspaceID string
-		expectedUpdateVariableID  string
-		expectedValue             string
+		description       string
+		args              []string
+		workspaceID       string
+		newVariablesProxy func(*testing.T) workspacesVariablesProxy
+		// listVariables             *tfe.VariableList
+		// updatedVariable           *tfe.Variable
+		// expectedUpdateWorkspaceID string
+		// expectedUpdateVariableID  string
+		expectedValue string
 	}{
 		{
 			"update existing variable",
@@ -37,19 +37,22 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 				"false",
 			},
 			"some workspace id",
-			&tfe.VariableList{
-				Items: []*tfe.Variable{
-					{
-						ID:  "some variable id",
-						Key: "bar",
-					},
-				},
-			},
-			&tfe.Variable{
-				Value: "baz",
-			},
-			"some workspace id",
-			"some variable id",
+			(func(t *testing.T) workspacesVariablesProxy {
+				return nil
+			}),
+			// &tfe.VariableList{
+			// 	Items: []*tfe.Variable{
+			// 		{
+			// 			ID:  "some variable id",
+			// 			Key: "bar",
+			// 		},
+			// 	},
+			// },
+			// &tfe.Variable{
+			// 	Value: "baz",
+			// },
+			// "some workspace id",
+			// "some variable id",
 			"baz",
 		},
 	}
@@ -61,13 +64,13 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 				AppName: "tfc-cli",
 				Writer:  &buff,
 			}
-			variablesProxy := newWorkspacesVariablesProxyForTesting(t)
-			variablesProxy.listVariables = d.listVariables
-			variablesProxy.updateResultVariable = d.updatedVariable
-			variablesProxy.updateWorkspaceID = d.expectedUpdateWorkspaceID
-			variablesProxy.updateVariableID = d.expectedUpdateVariableID
-			variablesProxy.expectedVariableUpdateOptions = tfe.VariableUpdateOptions{}
-			variablesProxy.expectedVariableUpdateOptions.Value = &d.expectedValue
+			// variablesProxy := newWorkspacesVariablesProxyForTesting(t)
+			// variablesProxy.listVariables = d.listVariables
+			// variablesProxy.updateResultVariable = d.updatedVariable
+			// variablesProxy.updateWorkspaceID = d.expectedUpdateWorkspaceID
+			// variablesProxy.updateVariableID = d.expectedUpdateVariableID
+			// variablesProxy.expectedVariableUpdateOptions = tfe.VariableUpdateOptions{}
+			// variablesProxy.expectedVariableUpdateOptions.Value = &d.expectedValue
 			if err := root(
 				options,
 				args,
@@ -77,7 +80,7 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 							workspaceID: d.workspaceID,
 						},
 						workspacesCommands: workspacesCommands{
-							variables: variablesProxy,
+							variables: d.newVariablesProxy(t),
 						},
 					},
 					os: osProxyForTests{
