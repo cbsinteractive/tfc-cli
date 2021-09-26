@@ -3,8 +3,6 @@ package cmd
 import (
 	"bytes"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestWorkspacesVariablesUpdate(t *testing.T) {
@@ -56,7 +54,6 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 			); err != nil {
 				t.Fatal(err)
 			}
-			assert.Fail(t, "not implemented")
 		})
 	}
 }

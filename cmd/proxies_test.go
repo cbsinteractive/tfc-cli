@@ -91,6 +91,8 @@ func newDefaultEnvForTests() map[string]string {
 type workspacesVariablesProxyForTesting struct {
 	listVariables *tfe.VariableList
 	listError     error
+	readVariable  *tfe.Variable
+	readError     error
 }
 
 func newWorkspacesVariablesProxyForTesting(listVariables *tfe.VariableList, listError error) workspacesVariablesProxyForTesting {
@@ -102,4 +104,8 @@ func newWorkspacesVariablesProxyForTesting(listVariables *tfe.VariableList, list
 
 func (p workspacesVariablesProxyForTesting) list(*tfe.Client, context.Context, string, tfe.VariableListOptions) (*tfe.VariableList, error) {
 	return p.listVariables, p.listError
+}
+
+func (p workspacesVariablesProxyForTesting) read(client *tfe.Client, ctx context.Context, workspaceID string, variableID string) (*tfe.Variable, error) {
+	return p.readVariable, p.readError
 }
