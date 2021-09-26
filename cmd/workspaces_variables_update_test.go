@@ -15,7 +15,7 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 		args              []string
 		workspaceID       string
 		newVariablesProxy func(*testing.T) workspacesVariablesProxy
-		expectedValue     string
+		expectedResult    WorkspacesVariablesUpdateCommandResult
 	}{
 		{
 			"update existing variable",
@@ -32,6 +32,8 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 				"true",
 				"-hcl",
 				"false",
+				"-description",
+				"some description",
 			},
 			"some workspace id",
 			(func(t *testing.T) workspacesVariablesProxy {
@@ -51,11 +53,27 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 					Value: &expectedValue,
 				}
 				p.updateResultVariable = &tfe.Variable{
-					Value: "baz",
+					ID:          "some variable id",
+					Key:         "bar",
+					Value:       "baz",
+					Description: "some description",
+					Category:    "terraform",
+					HCL:         false,
+					Sensitive:   true,
 				}
 				return p
 			}),
-			"baz",
+			WorkspacesVariablesUpdateCommandResult{
+				Result: &tfe.Variable{
+					ID:          "some variable id",
+					Key:         "bar",
+					Value:       "baz",
+					Description: "some description",
+					Category:    "terraform",
+					Sensitive:   true,
+					HCL:         false,
+				},
+			},
 		},
 	}
 	for _, d := range testConfigs {
@@ -88,7 +106,7 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 			// Verify result
 			result := WorkspacesVariablesUpdateCommandResult{}
 			json.Unmarshal(buff.Bytes(), &result)
-			assert.Equal(t, d.expectedValue, result.Result.Value)
+			assert.Equal(t, d.expectedResult, result)
 		})
 	}
 }
