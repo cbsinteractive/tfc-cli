@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -75,6 +76,10 @@ func variableFromKey(client *tfe.Client, proxy clientProxy, ctx context.Context,
 	return nil, fmt.Errorf("variable %s not found", key)
 }
 
+type WorkspacesVariablesUpdateCommandResult struct {
+	Result *tfe.Variable
+}
+
 func (c *WorkspacesVariablesUpdateCmd) Run() error {
 	ctx := context.Background()
 	client, err := tfe.NewClient(&tfe.Config{
@@ -91,12 +96,19 @@ func (c *WorkspacesVariablesUpdateCmd) Run() error {
 	if err != nil {
 		return err
 	}
-	u, err := c.deps.client.workspacesCommands.variables.update(client, ctx, w.ID, v.ID, tfe.VariableUpdateOptions{})
+	options := tfe.VariableUpdateOptions{
+		Value: &c.VariableOpts.value,
+	}
+	u, err := c.deps.client.workspacesCommands.variables.update(client, ctx, w.ID, v.ID, options)
 	if err != nil {
 		return err
 	}
 	if u == nil {
 		return errors.New("variable and error both nil")
 	}
+	d, _ := json.Marshal(WorkspacesVariablesUpdateCommandResult{
+		Result: u,
+	})
+	c.w.Write(d)
 	return nil
 }

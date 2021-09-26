@@ -89,15 +89,16 @@ func newDefaultEnvForTests() map[string]string {
 }
 
 type workspacesVariablesProxyForTesting struct {
-	t                    *testing.T
-	listVariables        *tfe.VariableList
-	listError            error
-	readVariable         *tfe.Variable
-	readError            error
-	updateWorkspaceID    string
-	updateVariableID     string
-	updateResultVariable *tfe.Variable
-	updateError          error
+	t                             *testing.T
+	listVariables                 *tfe.VariableList
+	listError                     error
+	readVariable                  *tfe.Variable
+	readError                     error
+	updateWorkspaceID             string
+	updateVariableID              string
+	expectedVariableUpdateOptions tfe.VariableUpdateOptions
+	updateResultVariable          *tfe.Variable
+	updateError                   error
 }
 
 func newWorkspacesVariablesProxyForTesting(t *testing.T) workspacesVariablesProxyForTesting {
@@ -115,5 +116,6 @@ func (p workspacesVariablesProxyForTesting) read(client *tfe.Client, ctx context
 func (p workspacesVariablesProxyForTesting) update(client *tfe.Client, ctx context.Context, workspaceID string, variableID string, opts tfe.VariableUpdateOptions) (*tfe.Variable, error) {
 	assert.Equal(p.t, p.updateWorkspaceID, workspaceID)
 	assert.Equal(p.t, p.updateVariableID, variableID)
+	assert.Equal(p.t, p.expectedVariableUpdateOptions, opts)
 	return p.updateResultVariable, p.updateError
 }

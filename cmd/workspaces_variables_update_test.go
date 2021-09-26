@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/hashicorp/go-tfe"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestWorkspacesVariablesUpdate(t *testing.T) {
@@ -16,6 +18,7 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 		updatedVariable           *tfe.Variable
 		expectedUpdateWorkspaceID string
 		expectedUpdateVariableID  string
+		expectedValue             string
 	}{
 		{
 			"update existing variable",
@@ -42,9 +45,12 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 					},
 				},
 			},
-			&tfe.Variable{},
+			&tfe.Variable{
+				Value: "baz",
+			},
 			"some workspace id",
 			"some variable id",
+			"baz",
 		},
 	}
 	for _, d := range testConfigs {
@@ -60,6 +66,8 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 			variablesProxy.updateResultVariable = d.updatedVariable
 			variablesProxy.updateWorkspaceID = d.expectedUpdateWorkspaceID
 			variablesProxy.updateVariableID = d.expectedUpdateVariableID
+			variablesProxy.expectedVariableUpdateOptions = tfe.VariableUpdateOptions{}
+			variablesProxy.expectedVariableUpdateOptions.Value = &d.expectedValue
 			if err := root(
 				options,
 				args,
@@ -79,6 +87,10 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 			); err != nil {
 				t.Fatal(err)
 			}
+			// Verify result
+			result := WorkspacesVariablesUpdateCommandResult{}
+			json.Unmarshal(buff.Bytes(), &result)
+			assert.Equal(t, d.expectedValue, result.Result.Value)
 		})
 	}
 }
