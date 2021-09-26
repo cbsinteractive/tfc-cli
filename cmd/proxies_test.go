@@ -13,53 +13,53 @@ type osProxyForTests struct {
 	envVars map[string]string
 }
 
-func (c osProxyForTests) lookupEnv(key string) (string, bool) {
-	if _, ok := c.envVars[key]; !ok {
+func (p osProxyForTests) lookupEnv(key string) (string, bool) {
+	if _, ok := p.envVars[key]; !ok {
 		return "", false
 	}
-	return c.envVars[key], true
+	return p.envVars[key], true
 }
 
 type workspacesProxyForTests struct {
 	t                *testing.T
 	organization     string
 	workspace        string
-	workspaceId      string
+	workspaceID      string
 	createdWorkspace *tfe.Workspace
 	createError      error
 }
 
-func (c workspacesProxyForTests) create(
+func (p workspacesProxyForTests) create(
 	*tfe.Client,
 	context.Context,
 	string,
 	tfe.WorkspaceCreateOptions,
 ) (*tfe.Workspace, error) {
-	return c.createdWorkspace, c.createError
+	return p.createdWorkspace, p.createError
 }
 
-func (c workspacesProxyForTests) delete(
+func (p workspacesProxyForTests) delete(
 	_ *tfe.Client,
 	_ context.Context,
 	organization string,
 	workspace string,
 ) error {
-	assert.Equal(c.t, c.organization, organization)
-	assert.Equal(c.t, c.workspace, workspace)
+	assert.Equal(p.t, p.organization, organization)
+	assert.Equal(p.t, p.workspace, workspace)
 	return nil
 }
 
-func (c workspacesProxyForTests) read(
+func (p workspacesProxyForTests) read(
 	*tfe.Client,
 	context.Context,
 	string,
 	string,
 ) (*tfe.Workspace, error) {
-	if c.workspaceId == "" {
+	if p.workspaceID == "" {
 		return nil, errors.New("resource not found")
 	}
 	return &tfe.Workspace{
-		ID: c.workspaceId,
+		ID: p.workspaceID,
 	}, nil
 }
 
@@ -67,17 +67,17 @@ type stateVersionsProxyForTests struct {
 	outputs []*tfe.StateVersionOutput
 }
 
-func (c stateVersionsProxyForTests) currentWithOptions(
+func (p stateVersionsProxyForTests) currentWithOptions(
 	_ *tfe.Client,
 	ctx context.Context,
 	workspaceID string,
 	options *tfe.StateVersionCurrentOptions,
 ) (*tfe.StateVersion, error) {
-	if c.outputs == nil {
+	if p.outputs == nil {
 		return nil, errors.New("not implemented")
 	}
 	return &tfe.StateVersion{
-		Outputs: c.outputs,
+		Outputs: p.outputs,
 	}, nil
 }
 
@@ -89,17 +89,19 @@ func newDefaultEnvForTests() map[string]string {
 }
 
 type workspacesVariablesProxyForTesting struct {
-	listVariables *tfe.VariableList
-	listError     error
-	readVariable  *tfe.Variable
-	readError     error
+	t                    *testing.T
+	listVariables        *tfe.VariableList
+	listError            error
+	readVariable         *tfe.Variable
+	readError            error
+	updateWorkspaceID    string
+	updateVariableID     string
+	updateResultVariable *tfe.Variable
+	updateError          error
 }
 
-func newWorkspacesVariablesProxyForTesting(listVariables *tfe.VariableList, listError error) workspacesVariablesProxyForTesting {
-	return workspacesVariablesProxyForTesting{
-		listVariables: listVariables,
-		listError:     listError,
-	}
+func newWorkspacesVariablesProxyForTesting(t *testing.T) workspacesVariablesProxyForTesting {
+	return workspacesVariablesProxyForTesting{t: t}
 }
 
 func (p workspacesVariablesProxyForTesting) list(*tfe.Client, context.Context, string, tfe.VariableListOptions) (*tfe.VariableList, error) {
@@ -108,4 +110,10 @@ func (p workspacesVariablesProxyForTesting) list(*tfe.Client, context.Context, s
 
 func (p workspacesVariablesProxyForTesting) read(client *tfe.Client, ctx context.Context, workspaceID string, variableID string) (*tfe.Variable, error) {
 	return p.readVariable, p.readError
+}
+
+func (p workspacesVariablesProxyForTesting) update(client *tfe.Client, ctx context.Context, workspaceID string, variableID string, opts tfe.VariableUpdateOptions) (*tfe.Variable, error) {
+	assert.Equal(p.t, p.updateWorkspaceID, workspaceID)
+	assert.Equal(p.t, p.updateVariableID, variableID)
+	return p.updateResultVariable, p.updateError
 }

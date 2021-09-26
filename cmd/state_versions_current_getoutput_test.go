@@ -55,7 +55,7 @@ func TestStateVersionsCurrentGetOutput(t *testing.T) {
 							outputs: d.outputs,
 						},
 						workspaces: workspacesProxyForTests{
-							workspaceId: d.workspaceId,
+							workspaceID: d.workspaceId,
 						},
 					},
 					os: osProxyForTests{

@@ -46,16 +46,19 @@ func TestWorkspacesVariablesList(t *testing.T) {
 				AppName: "tfc-cli",
 				Writer:  &buff,
 			}
+			variablesProxy := newWorkspacesVariablesProxyForTesting(t)
+			variablesProxy.listVariables = d.listVariables
+			variablesProxy.listError = d.listError
 			if err := root(
 				options,
 				args,
 				dependencyProxies{
 					client: clientProxy{
 						workspaces: workspacesProxyForTests{
-							workspaceId: d.workspaceID,
+							workspaceID: d.workspaceID,
 						},
 						workspacesCommands: workspacesCommands{
-							variables: newWorkspacesVariablesProxyForTesting(d.listVariables, d.listError),
+							variables: variablesProxy,
 						},
 					},
 					os: osProxyForTests{

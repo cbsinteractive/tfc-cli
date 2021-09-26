@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -42,11 +43,9 @@ func (c *WorkspacesVariablesUpdateCmd) Name() string {
 }
 
 func (c *WorkspacesVariablesUpdateCmd) Init(args []string) error {
-	fmt.Printf("Args: %+v\n", args)
 	if err := c.fs.Parse(args); err != nil {
 		return err
 	}
-	fmt.Printf("Command: %+v\n", c)
 	if err := processCommonInputs(
 		&c.OrgOpts.token,
 		&c.OrgOpts.name,
@@ -63,19 +62,41 @@ func (c *WorkspacesVariablesUpdateCmd) Init(args []string) error {
 	return nil
 }
 
+func variableFromKey(client *tfe.Client, proxy clientProxy, ctx context.Context, workspaceID string, key string) (*tfe.Variable, error) {
+	v, err := proxy.workspacesCommands.variables.list(client, ctx, workspaceID, tfe.VariableListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range v.Items {
+		if i.Key == key {
+			return i, nil
+		}
+	}
+	return nil, fmt.Errorf("variable %s not found", key)
+}
+
 func (c *WorkspacesVariablesUpdateCmd) Run() error {
-	// ctx := context.Background()
-	_, err := tfe.NewClient(&tfe.Config{
+	ctx := context.Background()
+	client, err := tfe.NewClient(&tfe.Config{
 		Token: c.OrgOpts.token,
 	})
 	if err != nil {
 		return err
 	}
-	// Obtain the variable ID
-	// v, err := c.deps.client.workspacesCommands.variables.read(client, ctx, c.VariableOpts.key)
-	// if err != nil {
-	// 	return err
-	// }
-	// c.VariableOpts.key
+	w, err := c.deps.client.workspaces.read(client, ctx, c.OrgOpts.name, c.WorkspaceOpts.name)
+	if err != nil {
+		return err
+	}
+	v, err := variableFromKey(client, c.deps.client, ctx, w.ID, c.VariableOpts.key)
+	if err != nil {
+		return err
+	}
+	u, err := c.deps.client.workspacesCommands.variables.update(client, ctx, w.ID, v.ID, tfe.VariableUpdateOptions{})
+	if err != nil {
+		return err
+	}
+	if u == nil {
+		return errors.New("variable and error both nil")
+	}
 	return nil
 }

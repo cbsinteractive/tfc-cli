@@ -3,13 +3,19 @@ package cmd
 import (
 	"bytes"
 	"testing"
+
+	"github.com/hashicorp/go-tfe"
 )
 
 func TestWorkspacesVariablesUpdate(t *testing.T) {
 	testConfigs := []struct {
-		description string
-		args        []string
-		workspaceID string
+		description               string
+		args                      []string
+		workspaceID               string
+		listVariables             *tfe.VariableList
+		updatedVariable           *tfe.Variable
+		expectedUpdateWorkspaceID string
+		expectedUpdateVariableID  string
 	}{
 		{
 			"update existing variable",
@@ -28,6 +34,17 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 				"false",
 			},
 			"some workspace id",
+			&tfe.VariableList{
+				Items: []*tfe.Variable{
+					{
+						ID:  "some variable id",
+						Key: "bar",
+					},
+				},
+			},
+			&tfe.Variable{},
+			"some workspace id",
+			"some variable id",
 		},
 	}
 	for _, d := range testConfigs {
@@ -38,13 +55,21 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 				AppName: "tfc-cli",
 				Writer:  &buff,
 			}
+			variablesProxy := newWorkspacesVariablesProxyForTesting(t)
+			variablesProxy.listVariables = d.listVariables
+			variablesProxy.updateResultVariable = d.updatedVariable
+			variablesProxy.updateWorkspaceID = d.expectedUpdateWorkspaceID
+			variablesProxy.updateVariableID = d.expectedUpdateVariableID
 			if err := root(
 				options,
 				args,
 				dependencyProxies{
 					client: clientProxy{
 						workspaces: workspacesProxyForTests{
-							workspaceId: d.workspaceID,
+							workspaceID: d.workspaceID,
+						},
+						workspacesCommands: workspacesCommands{
+							variables: variablesProxy,
 						},
 					},
 					os: osProxyForTests{

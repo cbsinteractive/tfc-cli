@@ -74,6 +74,7 @@ func newWorkspacesCommands() workspacesCommands {
 type workspacesVariablesProxy interface {
 	list(*tfe.Client, context.Context, string, tfe.VariableListOptions) (*tfe.VariableList, error)
 	read(*tfe.Client, context.Context, string, string) (*tfe.Variable, error)
+	update(client *tfe.Client, ctx context.Context, workspaceID string, variableID string, opts tfe.VariableUpdateOptions) (*tfe.Variable, error)
 }
 
 type workspacesVariablesProxyForProduction struct{}
@@ -84,6 +85,10 @@ func (p workspacesVariablesProxyForProduction) list(client *tfe.Client, ctx cont
 
 func (p workspacesVariablesProxyForProduction) read(client *tfe.Client, ctx context.Context, workspaceID string, variableID string) (*tfe.Variable, error) {
 	return client.Variables.Read(ctx, workspaceID, variableID)
+}
+
+func (p workspacesVariablesProxyForProduction) update(client *tfe.Client, ctx context.Context, workspaceID string, variableID string, opts tfe.VariableUpdateOptions) (*tfe.Variable, error) {
+	return client.Variables.Update(ctx, workspaceID, variableID, opts)
 }
 
 type workspacesCommands struct {
