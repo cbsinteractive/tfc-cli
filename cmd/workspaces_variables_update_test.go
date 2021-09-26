@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/hashicorp/go-tfe"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,11 +15,7 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 		args              []string
 		workspaceID       string
 		newVariablesProxy func(*testing.T) workspacesVariablesProxy
-		// listVariables             *tfe.VariableList
-		// updatedVariable           *tfe.Variable
-		// expectedUpdateWorkspaceID string
-		// expectedUpdateVariableID  string
-		expectedValue string
+		expectedValue     string
 	}{
 		{
 			"update existing variable",
@@ -38,21 +35,26 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 			},
 			"some workspace id",
 			(func(t *testing.T) workspacesVariablesProxy {
-				return nil
+				p := newWorkspacesVariablesProxyForTesting(t)
+				p.listVariables = &tfe.VariableList{
+					Items: []*tfe.Variable{
+						{
+							ID:  "some variable id",
+							Key: "bar",
+						},
+					},
+				}
+				p.updateWorkspaceID = "some workspace id"
+				p.updateVariableID = "some variable id"
+				expectedValue := "baz"
+				p.expectedVariableUpdateOptions = tfe.VariableUpdateOptions{
+					Value: &expectedValue,
+				}
+				p.updateResultVariable = &tfe.Variable{
+					Value: "baz",
+				}
+				return p
 			}),
-			// &tfe.VariableList{
-			// 	Items: []*tfe.Variable{
-			// 		{
-			// 			ID:  "some variable id",
-			// 			Key: "bar",
-			// 		},
-			// 	},
-			// },
-			// &tfe.Variable{
-			// 	Value: "baz",
-			// },
-			// "some workspace id",
-			// "some variable id",
 			"baz",
 		},
 	}
@@ -64,13 +66,6 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 				AppName: "tfc-cli",
 				Writer:  &buff,
 			}
-			// variablesProxy := newWorkspacesVariablesProxyForTesting(t)
-			// variablesProxy.listVariables = d.listVariables
-			// variablesProxy.updateResultVariable = d.updatedVariable
-			// variablesProxy.updateWorkspaceID = d.expectedUpdateWorkspaceID
-			// variablesProxy.updateVariableID = d.expectedUpdateVariableID
-			// variablesProxy.expectedVariableUpdateOptions = tfe.VariableUpdateOptions{}
-			// variablesProxy.expectedVariableUpdateOptions.Value = &d.expectedValue
 			if err := root(
 				options,
 				args,
