@@ -2,6 +2,6 @@
 
 A command line utility for interfacing with Terraform Cloud. Uses [tfe-go][] under the hood.
 
-![Tests](https://github.com/cbsinteractive/tfc-cli/actions/workflows/tests.yml/badge.svg)
+[![Tests](https://github.com/cbsinteractive/tfc-cli/actions/workflows/tests.yml/badge.svg)](https://github.com/cbsinteractive/tfc-cli/actions/workflows/tests.yml)
 
 [tfe-go]: https://github.com/hashicorp/go-tfe
