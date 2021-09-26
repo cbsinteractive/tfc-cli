@@ -87,3 +87,19 @@ func newDefaultEnvForTests() map[string]string {
 		"TFC_ORG":   "some org",
 	}
 }
+
+type workspacesVariablesProxyForTesting struct {
+	listVariables *tfe.VariableList
+	listError     error
+}
+
+func newWorkspacesVariablesProxyForTesting(listVariables *tfe.VariableList, listError error) workspacesVariablesProxyForTesting {
+	return workspacesVariablesProxyForTesting{
+		listVariables: listVariables,
+		listError:     listError,
+	}
+}
+
+func (p workspacesVariablesProxyForTesting) list(*tfe.Client, context.Context, string, tfe.VariableListOptions) (*tfe.VariableList, error) {
+	return p.listVariables, p.listError
+}

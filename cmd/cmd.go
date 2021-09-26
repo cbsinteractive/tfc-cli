@@ -55,8 +55,9 @@ func Execute(options ExecuteOpts) error {
 		os.Args[1:],
 		dependencyProxies{
 			client: clientProxy{
-				stateVersions: newStateVersionsProxy(),
-				workspaces:    newWorkspacesProxy(),
+				stateVersions:      newStateVersionsProxy(),
+				workspaces:         newWorkspacesProxy(),
+				workspacesCommands: newWorkspacesCommands(),
 			},
 			os: newOSProxy(),
 		},
