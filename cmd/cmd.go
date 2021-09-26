@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -83,6 +84,12 @@ func root(options ExecuteOpts, args []string, deps dependencyProxies) error {
 		}
 	}
 	return fmt.Errorf("unknown subcommand: %s", subcommand)
+}
+
+func setCommonFlagsetOptions(fs *flag.FlagSet, o OrgOpts, w WorkspaceOpts) {
+	fs.StringVar(&o.name, "org", "", string(OrgUsage))
+	fs.StringVar(&o.token, "token", "", string(TokenUsage))
+	fs.StringVar(&w.name, "workspace", "", string(WorkspaceUsage))
 }
 
 func processSubcommand(childRunner *Runner, args []string, childRunners []Runner) error {
