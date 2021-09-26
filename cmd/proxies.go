@@ -62,6 +62,27 @@ func (p workspacesProxyForProduction) read(client *tfe.Client, ctx context.Conte
 type clientProxy struct {
 	stateVersions stateVersionsProxy
 	workspaces    workspacesProxy
+	workspacesCommands
+}
+
+func newWorkspacesCommands() workspacesCommands {
+	return workspacesCommands{
+		variables: workspacesVariablesProxyForProduction{},
+	}
+}
+
+type workspacesVariablesProxy interface {
+	list(*tfe.Client, context.Context, string, tfe.VariableListOptions) (*tfe.VariableList, error)
+}
+
+type workspacesVariablesProxyForProduction struct{}
+
+func (p workspacesVariablesProxyForProduction) list(client *tfe.Client, ctx context.Context, workspaceID string, opts tfe.VariableListOptions) (*tfe.VariableList, error) {
+	return client.Variables.List(ctx, workspaceID, opts)
+}
+
+type workspacesCommands struct {
+	variables workspacesVariablesProxy
 }
 
 type dependencyProxies struct {
