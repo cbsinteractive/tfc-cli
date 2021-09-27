@@ -13,9 +13,16 @@ import (
 
 func TestWorkspacesVariablesUpdate(t *testing.T) {
 	testConfigs := []struct {
-		description string
-		args        []string
-		workspaceID string
+		description         string
+		args                []string
+		organization        string
+		token               string
+		workspace           string
+		workspaceID         string
+		variableKey         string
+		variableID          string
+		expectedValue       string
+		expectedDescription string
 	}{
 		{
 			"update existing variable",
@@ -32,7 +39,14 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 				"-hcl=false",
 				"-description=\"some description\"",
 			},
+			"some org",
+			"some token",
+			"foo",
 			"some workspace id",
+			"bar",
+			"some variable id",
+			"baz",
+			"\"some description\"",
 		},
 	}
 	for _, d := range testConfigs {
@@ -45,22 +59,20 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 			}
 			// Set up expectations
 			mockOSProxy := mockOSProxy{}
-			mockOSProxy.On("lookupEnv", "TFC_ORG").Return("some org", true)
-			mockOSProxy.On("lookupEnv", "TFC_TOKEN").Return("some token", true)
+			mockOSProxy.On("lookupEnv", "TFC_ORG").Return(d.organization, true)
+			mockOSProxy.On("lookupEnv", "TFC_TOKEN").Return(d.token, true)
 			mockWorkspacesProxy := mockWorkspacesProxy{}
-			mockWorkspacesProxy.On("read", mock.Anything, mock.Anything, "some org", "foo").Return(&tfe.Workspace{ID: "some workspace id"}, nil)
+			mockWorkspacesProxy.On("read", mock.Anything, mock.Anything, d.organization, d.workspace).Return(&tfe.Workspace{ID: d.workspaceID}, nil)
 			variables := mockWorkspacesVariablesProxy{}
-			variables.On("list", mock.Anything, mock.Anything, "some workspace id", mock.Anything).Return(&tfe.VariableList{
+			variables.On("list", mock.Anything, mock.Anything, d.workspaceID, mock.Anything).Return(&tfe.VariableList{
 				Items: []*tfe.Variable{
 					{
-						ID:  "some variable id",
-						Key: "bar",
+						ID:  d.variableID,
+						Key: d.variableKey,
 					},
 				},
 			}, nil)
-			expectedValue := "baz"
-			expectedDescription := "\"some description\""
-			variables.On("update", mock.Anything, mock.Anything, "some workspace id", "some variable id", tfe.VariableUpdateOptions{Value: &expectedValue, Description: &expectedDescription}).Return(&tfe.Variable{}, nil)
+			variables.On("update", mock.Anything, mock.Anything, d.workspaceID, d.variableID, tfe.VariableUpdateOptions{Value: &d.expectedValue, Description: &d.expectedDescription}).Return(&tfe.Variable{}, nil)
 
 			// Code under test
 			err := root(
