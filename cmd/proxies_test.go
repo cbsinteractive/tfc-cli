@@ -132,24 +132,3 @@ func (m mockWorkspacesVariablesProxy) update(client *tfe.Client, ctx context.Con
 	args := m.Called(client, ctx, workspaceID, variableID, options)
 	return args.Get(0).(*tfe.Variable), args.Error(1)
 }
-
-type workspacesVariablesProxyForTesting struct {
-	listVariables        *tfe.VariableList
-	listError            error
-	readVariable         *tfe.Variable
-	readError            error
-	updateResultVariable *tfe.Variable
-	updateError          error
-}
-
-func (p workspacesVariablesProxyForTesting) list(*tfe.Client, context.Context, string, tfe.VariableListOptions) (*tfe.VariableList, error) {
-	return p.listVariables, p.listError
-}
-
-func (p workspacesVariablesProxyForTesting) read(client *tfe.Client, ctx context.Context, workspaceID string, variableID string) (*tfe.Variable, error) {
-	return p.readVariable, p.readError
-}
-
-func (p workspacesVariablesProxyForTesting) update(client *tfe.Client, ctx context.Context, workspaceID string, variableID string, opts tfe.VariableUpdateOptions) (*tfe.Variable, error) {
-	return p.updateResultVariable, p.updateError
-}

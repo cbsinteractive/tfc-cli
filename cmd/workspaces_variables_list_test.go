@@ -7,39 +7,36 @@ import (
 
 	"github.com/hashicorp/go-tfe"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestWorkspacesVariablesList(t *testing.T) {
 	testConfigs := []struct {
-		description       string
-		args              []string
-		workspaceID       string
-		newVariablesProxy func() workspacesVariablesProxy
-		expectedResult    WorkspacesVariablesListCommandResult
+		description         string
+		args                []string
+		workspaceID         string
+		variablesListResult *tfe.VariableList
+		variablesListError  error
+		expectedResult      WorkspacesVariablesListCommandResult
 	}{
 		{
 			"lists variables for existing workspace",
 			[]string{"-workspace", "foo"},
 			"some workspace id",
-			func() workspacesVariablesProxy {
-				r := &workspacesVariablesProxyForTesting{
-					listVariables: &tfe.VariableList{
-						Items: []*tfe.Variable{
-							{
-								Key: "foo",
-							},
-							{
-								Key: "bar",
-							},
-							{
-								Key: "baz",
-							},
-						},
+			&tfe.VariableList{
+				Items: []*tfe.Variable{
+					{
+						Key: "foo",
 					},
-					listError: nil,
-				}
-				return r
+					{
+						Key: "bar",
+					},
+					{
+						Key: "baz",
+					},
+				},
 			},
+			nil,
 			WorkspacesVariablesListCommandResult{
 				Result: "foo,bar,baz",
 			},
@@ -53,6 +50,8 @@ func TestWorkspacesVariablesList(t *testing.T) {
 				AppName: "tfc-cli",
 				Writer:  &buff,
 			}
+			variables := mockWorkspacesVariablesProxy{}
+			variables.On("list", mock.Anything, mock.Anything, d.workspaceID, mock.Anything).Return(d.variablesListResult, d.variablesListError)
 			if err := root(
 				options,
 				args,
@@ -62,7 +61,7 @@ func TestWorkspacesVariablesList(t *testing.T) {
 							workspaceID: d.workspaceID,
 						},
 						workspacesCommands: workspacesCommands{
-							variables: d.newVariablesProxy(),
+							variables: variables,
 						},
 					},
 					os: osProxyForTests{
