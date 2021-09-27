@@ -36,8 +36,8 @@ func (c stateVersionsProxyForProduction) currentWithOptions(client *tfe.Client, 
 }
 
 type workspacesProxy interface {
-	create(*tfe.Client, context.Context, string, tfe.WorkspaceCreateOptions) (*tfe.Workspace, error)
-	delete(*tfe.Client, context.Context, string, string) error
+	create(client *tfe.Client, ctx context.Context, organization string, options tfe.WorkspaceCreateOptions) (*tfe.Workspace, error)
+	delete(client *tfe.Client, ctx context.Context, organization string, workspace string) error
 	read(*tfe.Client, context.Context, string, string) (*tfe.Workspace, error)
 }
 

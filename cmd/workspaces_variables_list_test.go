@@ -16,17 +16,25 @@ func TestWorkspacesVariablesList(t *testing.T) {
 		args                []string
 		organization        string
 		token               string
+		workspace           string
 		workspaceID         string
+		workspaceReadResult *tfe.Workspace
+		workspaceReadError  error
 		variablesListResult *tfe.VariableList
 		variablesListError  error
 		expectedResult      WorkspacesVariablesListCommandResult
 	}{
 		{
 			"lists variables for existing workspace",
-			[]string{"-workspace", "foo"},
+			[]string{"-workspace", "some workspace"},
 			"some org",
 			"some token",
+			"some workspace",
 			"some workspace id",
+			&tfe.Workspace{
+				ID: "some workspace id",
+			},
+			nil,
 			&tfe.VariableList{
 				Items: []*tfe.Variable{
 					{
@@ -57,26 +65,25 @@ func TestWorkspacesVariablesList(t *testing.T) {
 			mockedOSProxy := mockOSProxy{}
 			mockedOSProxy.On("lookupEnv", "TFC_ORG").Return(d.organization, true)
 			mockedOSProxy.On("lookupEnv", "TFC_TOKEN").Return(d.token, true)
+			mockedWorkspacesProxy := mockWorkspacesProxy{}
+			mockedWorkspacesProxy.On("read", mock.Anything, mock.Anything, d.organization, d.workspace).Return(d.workspaceReadResult, d.workspaceReadError)
 			mockedVariables := mockWorkspacesVariablesProxy{}
 			mockedVariables.On("list", mock.Anything, mock.Anything, d.workspaceID, mock.Anything).Return(d.variablesListResult, d.variablesListError)
-			if err := root(
+			err := root(
 				options,
 				args,
 				dependencyProxies{
 					client: clientProxy{
-						workspaces: workspacesProxyForTests{
-							workspaceID: d.workspaceID,
-						},
+						workspaces: mockedWorkspacesProxy,
 						workspacesCommands: workspacesCommands{
 							variables: mockedVariables,
 						},
 					},
 					os: mockedOSProxy,
 				},
-			); err != nil {
-				t.Fatal(err)
-			}
+			)
 			// Verify result
+			assert.Nil(t, err)
 			result := WorkspacesVariablesListCommandResult{}
 			json.Unmarshal(buff.Bytes(), &result)
 			assert.Equal(t, d.expectedResult, result)

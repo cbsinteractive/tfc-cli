@@ -4,24 +4,25 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/hashicorp/go-tfe"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestWorkspacesDelete(t *testing.T) {
 	testConfigs := []struct {
-		description      string
-		args             []string
-		organization     string
-		token            string
-		createdWorkspace *tfe.Workspace
-		createError      error
+		description          string
+		args                 []string
+		organization         string
+		token                string
+		workspace            string
+		workspaceDeleteError error
 	}{
 		{
 			"foo",
 			[]string{"-workspace", "foo"},
 			"some org",
 			"some token",
-			&tfe.Workspace{},
+			"foo",
 			nil,
 		},
 	}
@@ -37,22 +38,23 @@ func TestWorkspacesDelete(t *testing.T) {
 			mockedOSProxy := mockOSProxy{}
 			mockedOSProxy.On("lookupEnv", "TFC_ORG").Return(d.organization, true)
 			mockedOSProxy.On("lookupEnv", "TFC_TOKEN").Return(d.token, true)
-			if err := root(
+			mockedWorkspacesProxy := mockWorkspacesProxy{}
+			mockedWorkspacesProxy.On("delete", mock.Anything, mock.Anything, d.organization, d.workspace).Return(d.workspaceDeleteError)
+			err := root(
 				options,
 				args,
 				dependencyProxies{
 					client: clientProxy{
-						workspaces: workspacesProxyForTests{
-							t:            t,
-							organization: "some org",
-							workspace:    "foo",
-						},
+						workspaces: mockedWorkspacesProxy,
 					},
 					os: mockedOSProxy,
 				},
-			); err != nil {
-				t.Fatal(err)
-			}
+			)
+
+			// Verify
+			assert.Nil(t, err)
+			mockedOSProxy.AssertExpectations(t)
+			mockedWorkspacesProxy.AssertExpectations(t)
 		})
 	}
 }

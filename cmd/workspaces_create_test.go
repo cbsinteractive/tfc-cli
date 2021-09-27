@@ -5,22 +5,33 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-tfe"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestWorkspacesCreate(t *testing.T) {
+	newWorkspaceCreateOptions := (func(name string) tfe.WorkspaceCreateOptions {
+		description := "Created by tfc-cli"
+		return tfe.WorkspaceCreateOptions{
+			Name:        &name,
+			Description: &description,
+		}
+	})
 	testConfigs := []struct {
-		description      string
-		args             []string
-		organization     string
-		token            string
-		createdWorkspace *tfe.Workspace
-		createError      error
+		description           string
+		args                  []string
+		organization          string
+		token                 string
+		workspace             string
+		workspaceCreateResult *tfe.Workspace
+		workspaceCreateError  error
 	}{
 		{
-			"foo",
+			"workspace created",
 			[]string{"-workspace", "foo"},
 			"some org",
 			"some token",
+			"foo",
 			&tfe.Workspace{},
 			nil,
 		},
@@ -37,21 +48,21 @@ func TestWorkspacesCreate(t *testing.T) {
 			mockedOSProxy := mockOSProxy{}
 			mockedOSProxy.On("lookupEnv", "TFC_ORG").Return(d.organization, true)
 			mockedOSProxy.On("lookupEnv", "TFC_TOKEN").Return(d.token, true)
-			if err := root(
+			mockedWorkspacesProxy := mockWorkspacesProxy{}
+			mockedWorkspacesProxy.On("create", mock.Anything, mock.Anything, d.organization, newWorkspaceCreateOptions(d.workspace)).Return(d.workspaceCreateResult, d.workspaceCreateError)
+			err := root(
 				options,
 				args,
 				dependencyProxies{
 					client: clientProxy{
-						workspaces: workspacesProxyForTests{
-							createdWorkspace: d.createdWorkspace,
-							createError:      d.createError,
-						},
+						workspaces: mockedWorkspacesProxy,
 					},
 					os: mockedOSProxy,
 				},
-			); err != nil {
-				t.Fatal(err)
-			}
+			)
+
+			// Verify
+			assert.Nil(t, err)
 		})
 	}
 }
