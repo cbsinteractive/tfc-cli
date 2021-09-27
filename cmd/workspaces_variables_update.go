@@ -44,7 +44,6 @@ func (c *WorkspacesVariablesUpdateCmd) Name() string {
 }
 
 func (c *WorkspacesVariablesUpdateCmd) Init(args []string) error {
-	fmt.Printf("Args: %v\n", args)
 	if err := c.fs.Parse(args); err != nil {
 		return err
 	}
@@ -97,12 +96,10 @@ func (c *WorkspacesVariablesUpdateCmd) Run() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Variable opts: %+v\n", c.VariableOpts)
 	options := tfe.VariableUpdateOptions{
 		Value:       &c.VariableOpts.value,
 		Description: &c.VariableOpts.description,
 	}
-	fmt.Printf("Description: %s\n", *options.Description)
 	u, err := c.deps.client.workspacesCommands.variables.update(client, ctx, w.ID, v.ID, options)
 	if err != nil {
 		return err

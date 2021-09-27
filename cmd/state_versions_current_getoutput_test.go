@@ -11,16 +11,17 @@ import (
 
 func TestStateVersionsCurrentGetOutput(t *testing.T) {
 	testConfigs := []struct {
-		name                string
-		organization        string
-		token               string
-		workspace           string
-		workspaceId         string
-		workspaceReadResult *tfe.Workspace
-		workspaceReadError  error
-		outputName          string
-		outputs             []*tfe.StateVersionOutput
-		expectedValue       string
+		name                     string
+		organization             string
+		token                    string
+		workspace                string
+		workspaceID              string
+		workspaceReadResult      *tfe.Workspace
+		workspaceReadError       error
+		outputName               string
+		currentWithOptionsResult *tfe.StateVersion
+		currentWithOptionsError  error
+		expectedValue            string
 	}{
 		{
 			"output variable found",
@@ -28,16 +29,22 @@ func TestStateVersionsCurrentGetOutput(t *testing.T) {
 			"some token",
 			"some workspace",
 			"some workspace id",
-			&tfe.Workspace{},
+			&tfe.Workspace{
+				ID: "some workspace id",
+			},
 			nil,
 			"foo",
-			[]*tfe.StateVersionOutput{
-				{
-					Name:  "foo",
-					Value: "some value",
+			&tfe.StateVersion{
+				Outputs: []*tfe.StateVersionOutput{
+					{
+						Name:  "foo",
+						Value: "some value",
+					},
 				},
 			},
-			"some value"},
+			nil,
+			"some value",
+		},
 	}
 	for _, d := range testConfigs {
 		t.Run(d.name, func(t *testing.T) {
@@ -61,17 +68,16 @@ func TestStateVersionsCurrentGetOutput(t *testing.T) {
 			mockedOSProxy.On("lookupEnv", "TFC_TOKEN").Return(d.token, true)
 			mockedWorkspacesProxy := mockWorkspacesProxy{}
 			mockedWorkspacesProxy.On("read", mock.Anything, mock.Anything, d.organization, d.workspace).Return(d.workspaceReadResult, d.workspaceReadError)
-
+			mockedStateVersionsProxy := mockStateVersionsProxy{}
+			mockedStateVersionsProxy.On("currentWithOptions", mock.Anything, mock.Anything, d.workspaceID, &tfe.StateVersionCurrentOptions{Include: "outputs"}).Return(d.currentWithOptionsResult, d.currentWithOptionsError)
 			// Code under test
 			err := root(
 				options,
 				args,
 				dependencyProxies{
 					client: clientProxy{
-						stateVersions: stateVersionsProxyForTests{
-							outputs: d.outputs,
-						},
-						workspaces: mockedWorkspacesProxy,
+						stateVersions: mockedStateVersionsProxy,
+						workspaces:    mockedWorkspacesProxy,
 					},
 					os: mockedOSProxy,
 				},

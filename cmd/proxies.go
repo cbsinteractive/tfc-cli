@@ -22,7 +22,7 @@ func newOSProxy() osProxyForProduction {
 }
 
 type stateVersionsProxy interface {
-	currentWithOptions(*tfe.Client, context.Context, string, *tfe.StateVersionCurrentOptions) (*tfe.StateVersion, error)
+	currentWithOptions(client *tfe.Client, ctx context.Context, workspaceID string, options *tfe.StateVersionCurrentOptions) (*tfe.StateVersion, error)
 }
 
 type stateVersionsProxyForProduction struct{}
@@ -31,8 +31,8 @@ func newStateVersionsProxy() stateVersionsProxyForProduction {
 	return stateVersionsProxyForProduction{}
 }
 
-func (c stateVersionsProxyForProduction) currentWithOptions(client *tfe.Client, ctx context.Context, workspaceID string, opts *tfe.StateVersionCurrentOptions) (*tfe.StateVersion, error) {
-	return client.StateVersions.CurrentWithOptions(ctx, workspaceID, opts)
+func (c stateVersionsProxyForProduction) currentWithOptions(client *tfe.Client, ctx context.Context, workspaceID string, options *tfe.StateVersionCurrentOptions) (*tfe.StateVersion, error) {
+	return client.StateVersions.CurrentWithOptions(ctx, workspaceID, options)
 }
 
 type workspacesProxy interface {
