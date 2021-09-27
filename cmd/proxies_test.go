@@ -7,7 +7,17 @@ import (
 
 	"github.com/hashicorp/go-tfe"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
+
+type mockOSProxy struct {
+	mock.Mock
+}
+
+func (m mockOSProxy) lookupEnv(key string) (string, bool) {
+	args := m.Called(key)
+	return args.String(0), args.Bool(1)
+}
 
 type osProxyForTests struct {
 	envVars map[string]string
@@ -18,6 +28,23 @@ func (p osProxyForTests) lookupEnv(key string) (string, bool) {
 		return "", false
 	}
 	return p.envVars[key], true
+}
+
+type mockWorkspacesProxy struct {
+	mock.Mock
+}
+
+func (m mockWorkspacesProxy) create(*tfe.Client, context.Context, string, tfe.WorkspaceCreateOptions) (*tfe.Workspace, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (m mockWorkspacesProxy) delete(*tfe.Client, context.Context, string, string) error {
+	return errors.New("not implemented")
+}
+
+func (m mockWorkspacesProxy) read(client *tfe.Client, ctx context.Context, organization string, workspace string) (*tfe.Workspace, error) {
+	args := m.Called(client, ctx, organization, workspace)
+	return args.Get(0).(*tfe.Workspace), args.Error(1)
 }
 
 type workspacesProxyForTests struct {
@@ -88,21 +115,31 @@ func newDefaultEnvForTests() map[string]string {
 	}
 }
 
-type workspacesVariablesProxyForTesting struct {
-	t                             *testing.T
-	listVariables                 *tfe.VariableList
-	listError                     error
-	readVariable                  *tfe.Variable
-	readError                     error
-	updateWorkspaceID             string
-	updateVariableID              string
-	expectedVariableUpdateOptions tfe.VariableUpdateOptions
-	updateResultVariable          *tfe.Variable
-	updateError                   error
+type mockWorkspacesVariablesProxy struct {
+	mock.Mock
 }
 
-func newWorkspacesVariablesProxyForTesting(t *testing.T) workspacesVariablesProxyForTesting {
-	return workspacesVariablesProxyForTesting{t: t}
+func (m mockWorkspacesVariablesProxy) list(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.VariableListOptions) (*tfe.VariableList, error) {
+	args := m.Called(client, ctx, workspaceID, options)
+	return args.Get(0).(*tfe.VariableList), args.Error(1)
+}
+
+func (m mockWorkspacesVariablesProxy) read(*tfe.Client, context.Context, string, string) (*tfe.Variable, error) {
+	return nil, errors.New("not implemented (read)")
+}
+
+func (m mockWorkspacesVariablesProxy) update(client *tfe.Client, ctx context.Context, workspaceID string, variableID string, options tfe.VariableUpdateOptions) (*tfe.Variable, error) {
+	args := m.Called(client, ctx, workspaceID, variableID, options)
+	return args.Get(0).(*tfe.Variable), args.Error(1)
+}
+
+type workspacesVariablesProxyForTesting struct {
+	listVariables        *tfe.VariableList
+	listError            error
+	readVariable         *tfe.Variable
+	readError            error
+	updateResultVariable *tfe.Variable
+	updateError          error
 }
 
 func (p workspacesVariablesProxyForTesting) list(*tfe.Client, context.Context, string, tfe.VariableListOptions) (*tfe.VariableList, error) {
@@ -114,8 +151,5 @@ func (p workspacesVariablesProxyForTesting) read(client *tfe.Client, ctx context
 }
 
 func (p workspacesVariablesProxyForTesting) update(client *tfe.Client, ctx context.Context, workspaceID string, variableID string, opts tfe.VariableUpdateOptions) (*tfe.Variable, error) {
-	assert.Equal(p.t, p.updateWorkspaceID, workspaceID)
-	assert.Equal(p.t, p.updateVariableID, variableID)
-	assert.Equal(p.t, p.expectedVariableUpdateOptions, opts)
 	return p.updateResultVariable, p.updateError
 }

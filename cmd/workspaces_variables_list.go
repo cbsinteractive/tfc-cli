@@ -53,6 +53,10 @@ func (c *WorkspacesVariablesListCmd) Init(args []string) error {
 	return nil
 }
 
+type WorkspacesVariablesListCommandResult struct {
+	Result string
+}
+
 func (c *WorkspacesVariablesListCmd) Run() error {
 	ctx := context.Background()
 	client, err := tfe.NewClient(&tfe.Config{
@@ -73,7 +77,7 @@ func (c *WorkspacesVariablesListCmd) Run() error {
 	for _, i := range l.Items {
 		keys = append(keys, i.Key)
 	}
-	d, _ := json.Marshal(CommandResult{
+	d, _ := json.Marshal(WorkspacesVariablesListCommandResult{
 		Result: strings.Join(keys, ","),
 	})
 	c.w.Write(d)

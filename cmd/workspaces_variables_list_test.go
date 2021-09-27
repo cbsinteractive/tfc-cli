@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/hashicorp/go-tfe"
@@ -10,32 +11,38 @@ import (
 
 func TestWorkspacesVariablesList(t *testing.T) {
 	testConfigs := []struct {
-		description   string
-		args          []string
-		workspaceID   string
-		listVariables *tfe.VariableList
-		listError     error
-		expectedList  string
+		description       string
+		args              []string
+		workspaceID       string
+		newVariablesProxy func() workspacesVariablesProxy
+		expectedResult    WorkspacesVariablesListCommandResult
 	}{
 		{
 			"lists variables for existing workspace",
 			[]string{"-workspace", "foo"},
 			"some workspace id",
-			&tfe.VariableList{
-				Items: []*tfe.Variable{
-					{
-						Key: "foo",
+			func() workspacesVariablesProxy {
+				r := &workspacesVariablesProxyForTesting{
+					listVariables: &tfe.VariableList{
+						Items: []*tfe.Variable{
+							{
+								Key: "foo",
+							},
+							{
+								Key: "bar",
+							},
+							{
+								Key: "baz",
+							},
+						},
 					},
-					{
-						Key: "bar",
-					},
-					{
-						Key: "baz",
-					},
-				},
+					listError: nil,
+				}
+				return r
 			},
-			nil,
-			"foo,bar,baz",
+			WorkspacesVariablesListCommandResult{
+				Result: "foo,bar,baz",
+			},
 		},
 	}
 	for _, d := range testConfigs {
@@ -46,9 +53,6 @@ func TestWorkspacesVariablesList(t *testing.T) {
 				AppName: "tfc-cli",
 				Writer:  &buff,
 			}
-			variablesProxy := newWorkspacesVariablesProxyForTesting(t)
-			variablesProxy.listVariables = d.listVariables
-			variablesProxy.listError = d.listError
 			if err := root(
 				options,
 				args,
@@ -58,7 +62,7 @@ func TestWorkspacesVariablesList(t *testing.T) {
 							workspaceID: d.workspaceID,
 						},
 						workspacesCommands: workspacesCommands{
-							variables: variablesProxy,
+							variables: d.newVariablesProxy(),
 						},
 					},
 					os: osProxyForTests{
@@ -68,7 +72,10 @@ func TestWorkspacesVariablesList(t *testing.T) {
 			); err != nil {
 				t.Fatal(err)
 			}
-			assert.Contains(t, buff.String(), d.expectedList)
+			// Verify result
+			result := WorkspacesVariablesListCommandResult{}
+			json.Unmarshal(buff.Bytes(), &result)
+			assert.Equal(t, d.expectedResult, result)
 		})
 	}
 }
