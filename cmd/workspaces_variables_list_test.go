@@ -69,6 +69,8 @@ func TestWorkspacesVariablesList(t *testing.T) {
 			mockedWorkspacesProxy.On("read", mock.Anything, mock.Anything, d.organization, d.workspace).Return(d.workspaceReadResult, d.workspaceReadError)
 			mockedVariables := mockWorkspacesVariablesProxy{}
 			mockedVariables.On("list", mock.Anything, mock.Anything, d.workspaceID, mock.Anything).Return(d.variablesListResult, d.variablesListError)
+
+			// Code under test
 			err := root(
 				options,
 				args,

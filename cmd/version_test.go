@@ -31,13 +31,16 @@ func TestVersion(t *testing.T) {
 				AppName: "tfc-cli",
 				Writer:  &buff,
 			}
-			if err := root(
+
+			// Code under test
+			err := root(
 				options,
 				args,
 				dependencyProxies{},
-			); err != nil {
-				t.Fatal(err)
-			}
+			)
+
+			// Verify
+			assert.Nil(t, err)
 			assert.Equal(t, d.expectedOutput, buff.String())
 		})
 	}

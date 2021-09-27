@@ -40,6 +40,8 @@ func TestWorkspacesDelete(t *testing.T) {
 			mockedOSProxy.On("lookupEnv", "TFC_TOKEN").Return(d.token, true)
 			mockedWorkspacesProxy := mockWorkspacesProxy{}
 			mockedWorkspacesProxy.On("delete", mock.Anything, mock.Anything, d.organization, d.workspace).Return(d.workspaceDeleteError)
+
+			// Code under test
 			err := root(
 				options,
 				args,

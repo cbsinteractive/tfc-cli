@@ -50,6 +50,8 @@ func TestWorkspacesCreate(t *testing.T) {
 			mockedOSProxy.On("lookupEnv", "TFC_TOKEN").Return(d.token, true)
 			mockedWorkspacesProxy := mockWorkspacesProxy{}
 			mockedWorkspacesProxy.On("create", mock.Anything, mock.Anything, d.organization, newWorkspaceCreateOptions(d.workspace)).Return(d.workspaceCreateResult, d.workspaceCreateError)
+
+			// Code under test
 			err := root(
 				options,
 				args,
@@ -63,6 +65,8 @@ func TestWorkspacesCreate(t *testing.T) {
 
 			// Verify
 			assert.Nil(t, err)
+			mockedOSProxy.AssertExpectations(t)
+			mockedWorkspacesProxy.AssertExpectations(t)
 		})
 	}
 }

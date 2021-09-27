@@ -61,7 +61,9 @@ func TestStateVersionsCurrentGetOutput(t *testing.T) {
 			mockedOSProxy.On("lookupEnv", "TFC_TOKEN").Return(d.token, true)
 			mockedWorkspacesProxy := mockWorkspacesProxy{}
 			mockedWorkspacesProxy.On("read", mock.Anything, mock.Anything, d.organization, d.workspace).Return(d.workspaceReadResult, d.workspaceReadError)
-			if err := root(
+
+			// Code under test
+			err := root(
 				options,
 				args,
 				dependencyProxies{
@@ -73,9 +75,10 @@ func TestStateVersionsCurrentGetOutput(t *testing.T) {
 					},
 					os: mockedOSProxy,
 				},
-			); err != nil {
-				t.Fatal(err)
-			}
+			)
+
+			// Verify
+			assert.Nil(t, err)
 			assert.Contains(t, buff.String(), d.expectedValue)
 		})
 	}
