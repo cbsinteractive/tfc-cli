@@ -46,15 +46,6 @@ type WorkspaceOpts struct {
 	name string
 }
 
-type VariableOpts struct {
-	key         string
-	value       string
-	description string
-	category    string
-	sensitive   bool
-	hcl         bool
-}
-
 type ExecuteOpts struct {
 	AppName string
 	Writer  io.Writer
