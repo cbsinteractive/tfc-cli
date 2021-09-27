@@ -72,12 +72,17 @@ func newWorkspacesCommands() workspacesCommands {
 }
 
 type workspacesVariablesProxy interface {
-	list(*tfe.Client, context.Context, string, tfe.VariableListOptions) (*tfe.VariableList, error)
-	read(*tfe.Client, context.Context, string, string) (*tfe.Variable, error)
-	update(client *tfe.Client, ctx context.Context, workspaceID string, variableID string, opts tfe.VariableUpdateOptions) (*tfe.Variable, error)
+	create(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.VariableCreateOptions) (*tfe.Variable, error)
+	list(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.VariableListOptions) (*tfe.VariableList, error)
+	read(client *tfe.Client, ctx context.Context, workspaceID string, variableID string) (*tfe.Variable, error)
+	update(client *tfe.Client, ctx context.Context, workspaceID string, variableID string, options tfe.VariableUpdateOptions) (*tfe.Variable, error)
 }
 
 type workspacesVariablesProxyForProduction struct{}
+
+func (p workspacesVariablesProxyForProduction) create(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.VariableCreateOptions) (*tfe.Variable, error) {
+	return client.Variables.Create(ctx, workspaceID, options)
+}
 
 func (p workspacesVariablesProxyForProduction) list(client *tfe.Client, ctx context.Context, workspaceID string, opts tfe.VariableListOptions) (*tfe.VariableList, error) {
 	return client.Variables.List(ctx, workspaceID, opts)
