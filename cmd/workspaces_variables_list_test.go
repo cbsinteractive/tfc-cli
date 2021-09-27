@@ -14,6 +14,8 @@ func TestWorkspacesVariablesList(t *testing.T) {
 	testConfigs := []struct {
 		description         string
 		args                []string
+		organization        string
+		token               string
 		workspaceID         string
 		variablesListResult *tfe.VariableList
 		variablesListError  error
@@ -22,6 +24,8 @@ func TestWorkspacesVariablesList(t *testing.T) {
 		{
 			"lists variables for existing workspace",
 			[]string{"-workspace", "foo"},
+			"some org",
+			"some token",
 			"some workspace id",
 			&tfe.VariableList{
 				Items: []*tfe.Variable{
@@ -50,8 +54,11 @@ func TestWorkspacesVariablesList(t *testing.T) {
 				AppName: "tfc-cli",
 				Writer:  &buff,
 			}
-			variables := mockWorkspacesVariablesProxy{}
-			variables.On("list", mock.Anything, mock.Anything, d.workspaceID, mock.Anything).Return(d.variablesListResult, d.variablesListError)
+			mockedOSProxy := mockOSProxy{}
+			mockedOSProxy.On("lookupEnv", "TFC_ORG").Return(d.organization, true)
+			mockedOSProxy.On("lookupEnv", "TFC_TOKEN").Return(d.token, true)
+			mockedVariables := mockWorkspacesVariablesProxy{}
+			mockedVariables.On("list", mock.Anything, mock.Anything, d.workspaceID, mock.Anything).Return(d.variablesListResult, d.variablesListError)
 			if err := root(
 				options,
 				args,
@@ -61,12 +68,10 @@ func TestWorkspacesVariablesList(t *testing.T) {
 							workspaceID: d.workspaceID,
 						},
 						workspacesCommands: workspacesCommands{
-							variables: variables,
+							variables: mockedVariables,
 						},
 					},
-					os: osProxyForTests{
-						envVars: newDefaultEnvForTests(),
-					},
+					os: mockedOSProxy,
 				},
 			); err != nil {
 				t.Fatal(err)

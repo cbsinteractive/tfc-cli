@@ -19,17 +19,6 @@ func (m mockOSProxy) lookupEnv(key string) (string, bool) {
 	return args.String(0), args.Bool(1)
 }
 
-type osProxyForTests struct {
-	envVars map[string]string
-}
-
-func (p osProxyForTests) lookupEnv(key string) (string, bool) {
-	if _, ok := p.envVars[key]; !ok {
-		return "", false
-	}
-	return p.envVars[key], true
-}
-
 type mockWorkspacesProxy struct {
 	mock.Mock
 }
@@ -106,13 +95,6 @@ func (p stateVersionsProxyForTests) currentWithOptions(
 	return &tfe.StateVersion{
 		Outputs: p.outputs,
 	}, nil
-}
-
-func newDefaultEnvForTests() map[string]string {
-	return map[string]string{
-		"TFC_TOKEN": "some token",
-		"TFC_ORG":   "some org",
-	}
 }
 
 type mockWorkspacesVariablesProxy struct {

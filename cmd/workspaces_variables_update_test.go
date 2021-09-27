@@ -58,9 +58,9 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 				Writer:  &buff,
 			}
 			// Set up expectations
-			mockOSProxy := mockOSProxy{}
-			mockOSProxy.On("lookupEnv", "TFC_ORG").Return(d.organization, true)
-			mockOSProxy.On("lookupEnv", "TFC_TOKEN").Return(d.token, true)
+			mockedOSProxy := mockOSProxy{}
+			mockedOSProxy.On("lookupEnv", "TFC_ORG").Return(d.organization, true)
+			mockedOSProxy.On("lookupEnv", "TFC_TOKEN").Return(d.token, true)
 			mockWorkspacesProxy := mockWorkspacesProxy{}
 			mockWorkspacesProxy.On("read", mock.Anything, mock.Anything, d.organization, d.workspace).Return(&tfe.Workspace{ID: d.workspaceID}, nil)
 			variables := mockWorkspacesVariablesProxy{}
@@ -85,13 +85,13 @@ func TestWorkspacesVariablesUpdate(t *testing.T) {
 							variables: variables,
 						},
 					},
-					os: mockOSProxy,
+					os: mockedOSProxy,
 				},
 			)
 
 			// Verify
 			assert.Nil(t, err)
-			mockOSProxy.AssertExpectations(t)
+			mockedOSProxy.AssertExpectations(t)
 			mockWorkspacesProxy.AssertExpectations(t)
 			variables.AssertExpectations(t)
 			result := WorkspacesVariablesUpdateCommandResult{}

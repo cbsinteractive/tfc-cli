@@ -11,10 +11,19 @@ func TestWorkspacesDelete(t *testing.T) {
 	testConfigs := []struct {
 		description      string
 		args             []string
+		organization     string
+		token            string
 		createdWorkspace *tfe.Workspace
 		createError      error
 	}{
-		{"foo", []string{"-workspace", "foo"}, &tfe.Workspace{}, nil},
+		{
+			"foo",
+			[]string{"-workspace", "foo"},
+			"some org",
+			"some token",
+			&tfe.Workspace{},
+			nil,
+		},
 	}
 	for _, d := range testConfigs {
 		t.Run(d.description, func(t *testing.T) {
@@ -24,6 +33,10 @@ func TestWorkspacesDelete(t *testing.T) {
 				AppName: "tfc-cli",
 				Writer:  &buff,
 			}
+			// Set up expectations
+			mockedOSProxy := mockOSProxy{}
+			mockedOSProxy.On("lookupEnv", "TFC_ORG").Return(d.organization, true)
+			mockedOSProxy.On("lookupEnv", "TFC_TOKEN").Return(d.token, true)
 			if err := root(
 				options,
 				args,
@@ -35,9 +48,7 @@ func TestWorkspacesDelete(t *testing.T) {
 							workspace:    "foo",
 						},
 					},
-					os: osProxyForTests{
-						envVars: newDefaultEnvForTests(),
-					},
+					os: mockedOSProxy,
 				},
 			); err != nil {
 				t.Fatal(err)
