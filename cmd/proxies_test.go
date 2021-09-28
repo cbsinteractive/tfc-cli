@@ -3,103 +3,72 @@ package cmd
 import (
 	"context"
 	"errors"
-	"testing"
 
 	"github.com/hashicorp/go-tfe"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
-type osProxyForTests struct {
-	envVars map[string]string
+type mockStateVersionsProxy struct {
+	mock.Mock
 }
 
-func (c osProxyForTests) lookupEnv(key string) (string, bool) {
-	if _, ok := c.envVars[key]; !ok {
-		return "", false
-	}
-	return c.envVars[key], true
+func (m mockStateVersionsProxy) currentWithOptions(client *tfe.Client, ctx context.Context, workspaceID string, options *tfe.StateVersionCurrentOptions) (*tfe.StateVersion, error) {
+	args := m.Called(client, ctx, workspaceID, options)
+	return args.Get(0).(*tfe.StateVersion), args.Error(1)
 }
 
-type workspacesProxyForTests struct {
-	t                *testing.T
-	organization     string
-	workspace        string
-	workspaceId      string
-	createdWorkspace *tfe.Workspace
-	createError      error
+type mockOSProxy struct {
+	mock.Mock
 }
 
-func (c workspacesProxyForTests) create(
-	*tfe.Client,
-	context.Context,
-	string,
-	tfe.WorkspaceCreateOptions,
-) (*tfe.Workspace, error) {
-	return c.createdWorkspace, c.createError
+func (m mockOSProxy) lookupEnv(key string) (string, bool) {
+	args := m.Called(key)
+	return args.String(0), args.Bool(1)
 }
 
-func (c workspacesProxyForTests) delete(
-	_ *tfe.Client,
-	_ context.Context,
-	organization string,
-	workspace string,
-) error {
-	assert.Equal(c.t, c.organization, organization)
-	assert.Equal(c.t, c.workspace, workspace)
-	return nil
+type mockWorkspacesProxy struct {
+	mock.Mock
 }
 
-func (c workspacesProxyForTests) read(
-	*tfe.Client,
-	context.Context,
-	string,
-	string,
-) (*tfe.Workspace, error) {
-	if c.workspaceId == "" {
-		return nil, errors.New("resource not found")
-	}
-	return &tfe.Workspace{
-		ID: c.workspaceId,
-	}, nil
+func (m mockWorkspacesProxy) create(client *tfe.Client, ctx context.Context, organization string, options tfe.WorkspaceCreateOptions) (*tfe.Workspace, error) {
+	args := m.Called(client, ctx, organization, options)
+	return args.Get(0).(*tfe.Workspace), args.Error(1)
 }
 
-type stateVersionsProxyForTests struct {
-	outputs []*tfe.StateVersionOutput
+func (m mockWorkspacesProxy) delete(client *tfe.Client, ctx context.Context, organization string, workspace string) error {
+	args := m.Called(client, ctx, organization, workspace)
+	return args.Error(0)
 }
 
-func (c stateVersionsProxyForTests) currentWithOptions(
-	_ *tfe.Client,
-	ctx context.Context,
-	workspaceID string,
-	options *tfe.StateVersionCurrentOptions,
-) (*tfe.StateVersion, error) {
-	if c.outputs == nil {
-		return nil, errors.New("not implemented")
-	}
-	return &tfe.StateVersion{
-		Outputs: c.outputs,
-	}, nil
+func (m mockWorkspacesProxy) read(client *tfe.Client, ctx context.Context, organization string, workspace string) (*tfe.Workspace, error) {
+	args := m.Called(client, ctx, organization, workspace)
+	return args.Get(0).(*tfe.Workspace), args.Error(1)
 }
 
-func newDefaultEnvForTests() map[string]string {
-	return map[string]string{
-		"TFC_TOKEN": "some token",
-		"TFC_ORG":   "some org",
-	}
+type mockWorkspacesVariablesProxy struct {
+	mock.Mock
 }
 
-type workspacesVariablesProxyForTesting struct {
-	listVariables *tfe.VariableList
-	listError     error
+func (m mockWorkspacesVariablesProxy) create(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.VariableCreateOptions) (*tfe.Variable, error) {
+	args := m.Called(client, ctx, workspaceID, options)
+	return args.Get(0).(*tfe.Variable), args.Error(1)
 }
 
-func newWorkspacesVariablesProxyForTesting(listVariables *tfe.VariableList, listError error) workspacesVariablesProxyForTesting {
-	return workspacesVariablesProxyForTesting{
-		listVariables: listVariables,
-		listError:     listError,
-	}
+func (m mockWorkspacesVariablesProxy) delete(client *tfe.Client, ctx context.Context, workspaceID string, variableID string) error {
+	args := m.Called(client, ctx, workspaceID, variableID)
+	return args.Error(0)
 }
 
-func (p workspacesVariablesProxyForTesting) list(*tfe.Client, context.Context, string, tfe.VariableListOptions) (*tfe.VariableList, error) {
-	return p.listVariables, p.listError
+func (m mockWorkspacesVariablesProxy) list(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.VariableListOptions) (*tfe.VariableList, error) {
+	args := m.Called(client, ctx, workspaceID, options)
+	return args.Get(0).(*tfe.VariableList), args.Error(1)
+}
+
+func (m mockWorkspacesVariablesProxy) read(*tfe.Client, context.Context, string, string) (*tfe.Variable, error) {
+	return nil, errors.New("not implemented (read)")
+}
+
+func (m mockWorkspacesVariablesProxy) update(client *tfe.Client, ctx context.Context, workspaceID string, variableID string, options tfe.VariableUpdateOptions) (*tfe.Variable, error) {
+	args := m.Called(client, ctx, workspaceID, variableID, options)
+	return args.Get(0).(*tfe.Variable), args.Error(1)
 }

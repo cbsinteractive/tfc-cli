@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -18,10 +19,16 @@ var (
 type Usage string
 
 const (
-	OrgUsage        Usage = "Organization name"
-	TokenUsage      Usage = "Organization token"
-	WorkspaceUsage  Usage = "Workspace name"
-	OutputNameUsage Usage = "Output variable name"
+	OrgUsage                 Usage = "Organization name"
+	TokenUsage               Usage = "Organization token"
+	WorkspaceUsage           Usage = "Workspace name"
+	OutputNameUsage          Usage = "Output variable name"
+	VariableKeyUsage         Usage = "Variable key"
+	VariableValueUsage       Usage = "Variable value"
+	VariableDescriptionUsage Usage = "Variable description"
+	VariableCategoryUsage    Usage = "Variable category"
+	VariableHCLUsage         Usage = "Indicates whether variable value is HCL-formatted"
+	VariableSensitiveUsage   Usage = "Indicates whether variable is sensitive"
 )
 
 type Runner interface {
@@ -83,6 +90,12 @@ func root(options ExecuteOpts, args []string, deps dependencyProxies) error {
 		}
 	}
 	return fmt.Errorf("unknown subcommand: %s", subcommand)
+}
+
+func setCommonFlagsetOptions(fs *flag.FlagSet, o *OrgOpts, w *WorkspaceOpts) {
+	fs.StringVar(&o.name, "org", "", string(OrgUsage))
+	fs.StringVar(&o.token, "token", "", string(TokenUsage))
+	fs.StringVar(&w.name, "workspace", "", string(WorkspaceUsage))
 }
 
 func processSubcommand(childRunner *Runner, args []string, childRunners []Runner) error {

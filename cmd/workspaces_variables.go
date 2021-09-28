@@ -27,7 +27,10 @@ func (c *WorkspacesVariablesCmd) Init(args []string) error {
 		return errors.New("no subcommand given")
 	}
 	runners := []Runner{
+		newWorkspacesVariablesCreateCmd(c.deps, c.w),
+		newWorkspacesVariablesDeleteCmd(c.deps, c.w),
 		newWorkspacesVariablesListCmd(c.deps, c.w),
+		newWorkspacesVariablesUpdateCmd(c.deps, c.w),
 	}
 	return processSubcommand(&c.r, args, runners)
 }

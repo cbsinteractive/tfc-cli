@@ -2,41 +2,42 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"flag"
 	"io"
-	"strings"
 
 	"github.com/hashicorp/go-tfe"
 )
 
-type WorkspacesVariablesListCmd struct {
+type VariableDeleteOpts struct {
+	key string
+}
+
+type workspacesVariablesDeleteCmd struct {
 	fs   *flag.FlagSet
 	deps dependencyProxies
 	OrgOpts
 	WorkspaceOpts
+	VariableDeleteOpts
 	w io.Writer
 }
 
-func newWorkspacesVariablesListCmd(
-	deps dependencyProxies,
-	w io.Writer,
-) *WorkspacesVariablesListCmd {
-	c := &WorkspacesVariablesListCmd{
-		fs:   flag.NewFlagSet("list", flag.ContinueOnError),
+func newWorkspacesVariablesDeleteCmd(deps dependencyProxies, w io.Writer) *workspacesVariablesDeleteCmd {
+	c := &workspacesVariablesDeleteCmd{
+		fs:   flag.NewFlagSet("delete", flag.ContinueOnError),
 		deps: deps,
 		w:    w,
 	}
 	setCommonFlagsetOptions(c.fs, &c.OrgOpts, &c.WorkspaceOpts)
+	c.fs.StringVar(&c.VariableDeleteOpts.key, "key", "", string(VariableKeyUsage))
 	return c
 }
 
-func (c *WorkspacesVariablesListCmd) Name() string {
+func (c *workspacesVariablesDeleteCmd) Name() string {
 	return c.fs.Name()
 }
 
-func (c *WorkspacesVariablesListCmd) Init(args []string) error {
+func (c *workspacesVariablesDeleteCmd) Init(args []string) error {
 	if err := c.fs.Parse(args); err != nil {
 		return err
 	}
@@ -50,14 +51,13 @@ func (c *WorkspacesVariablesListCmd) Init(args []string) error {
 	if c.WorkspaceOpts.name == "" {
 		return errors.New("-workspace argument is required")
 	}
+	if c.VariableDeleteOpts.key == "" {
+		return errors.New("-key argument is required")
+	}
 	return nil
 }
 
-type WorkspacesVariablesListCommandResult struct {
-	Result string
-}
-
-func (c *WorkspacesVariablesListCmd) Run() error {
+func (c *workspacesVariablesDeleteCmd) Run() error {
 	ctx := context.Background()
 	client, err := tfe.NewClient(&tfe.Config{
 		Token: c.OrgOpts.token,
@@ -69,17 +69,13 @@ func (c *WorkspacesVariablesListCmd) Run() error {
 	if err != nil {
 		return err
 	}
-	l, err := c.deps.client.workspacesCommands.variables.list(client, ctx, w.ID, tfe.VariableListOptions{})
+	v, err := variableFromKey(client, c.deps.client, ctx, w.ID, c.VariableDeleteOpts.key)
 	if err != nil {
 		return err
 	}
-	keys := make([]string, 0)
-	for _, i := range l.Items {
-		keys = append(keys, i.Key)
+	err = c.deps.client.variables.delete(client, ctx, w.ID, v.ID)
+	if err != nil {
+		return err
 	}
-	d, _ := json.Marshal(WorkspacesVariablesListCommandResult{
-		Result: strings.Join(keys, ","),
-	})
-	c.w.Write(d)
 	return nil
 }

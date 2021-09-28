@@ -25,9 +25,7 @@ func newWorkspacesCreateCmd(deps dependencyProxies, w io.Writer, appName string)
 		deps: deps,
 		w:    w,
 	}
-	c.fs.StringVar(&c.OrgOpts.name, "org", "", string(OrgUsage))
-	c.fs.StringVar(&c.OrgOpts.token, "token", "", string(TokenUsage))
-	c.fs.StringVar(&c.WorkspaceOpts.name, "workspace", "", string(WorkspaceUsage))
+	setCommonFlagsetOptions(c.fs, &c.OrgOpts, &c.WorkspaceOpts)
 	c.appName = appName
 	return c
 }
