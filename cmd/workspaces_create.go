@@ -36,13 +36,17 @@ func (c *workspacesCreateCmd) Name() string {
 
 func (c *workspacesCreateCmd) Init(args []string) error {
 	if err := c.fs.Parse(args); err != nil {
+		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	if err := processCommonInputs(&c.OrgOpts.token, &c.OrgOpts.name, c.deps.os.lookupEnv); err != nil {
+		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	if c.WorkspaceOpts.name == "" {
-		return errors.New("-workspace argument is required")
+		err := errors.New("-workspace argument is required")
+		c.w.Write(newCommandErrorOutput(err))
+		return err
 	}
 	return nil
 }
@@ -52,18 +56,22 @@ func (c *workspacesCreateCmd) Run() error {
 		Token: c.OrgOpts.token,
 	})
 	if err != nil {
+		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
-	workspaceDescription := fmt.Sprintf("Created by %s", c.appName)
+	description := fmt.Sprintf("Created by %s", c.appName)
 	workspace, err := c.deps.client.workspaces.create(client, context.Background(), c.OrgOpts.name, tfe.WorkspaceCreateOptions{
 		Name:        &c.WorkspaceOpts.name,
-		Description: &workspaceDescription,
+		Description: &description,
 	})
 	if err != nil {
+		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	if workspace == nil {
-		return errors.New("workspace and error both nil")
+		err := errors.New("workspace and error both nil")
+		c.w.Write(newCommandErrorOutput(err))
+		return err
 	}
 	return nil
 }
