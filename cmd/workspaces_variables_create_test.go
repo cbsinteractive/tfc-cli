@@ -69,8 +69,8 @@ func TestWorkspacesVariablesCreate(t *testing.T) {
 			mockedOSProxy.On("lookupEnv", "TFC_TOKEN").Return(d.token, true)
 			mockWorkspacesProxy := mockWorkspacesProxy{}
 			mockWorkspacesProxy.On("read", mock.Anything, mock.Anything, d.organization, d.workspace).Return(&tfe.Workspace{ID: d.workspaceID}, nil)
-			variables := mockWorkspacesVariablesProxy{}
-			variables.On(
+			mockedVariablesProxy := mockWorkspacesVariablesProxy{}
+			mockedVariablesProxy.On(
 				"create",
 				mock.Anything,
 				mock.Anything,
@@ -92,7 +92,7 @@ func TestWorkspacesVariablesCreate(t *testing.T) {
 					client: clientProxy{
 						workspaces: mockWorkspacesProxy,
 						workspacesCommands: workspacesCommands{
-							variables: variables,
+							variables: mockedVariablesProxy,
 						},
 					},
 					os: mockedOSProxy,
@@ -103,7 +103,7 @@ func TestWorkspacesVariablesCreate(t *testing.T) {
 			assert.Nil(t, err)
 			mockedOSProxy.AssertExpectations(t)
 			mockWorkspacesProxy.AssertExpectations(t)
-			variables.AssertExpectations(t)
+			mockedVariablesProxy.AssertExpectations(t)
 			result := WorkspacesVariablesUpdateValueCommandResult{}
 			assert.Nil(t, json.Unmarshal(buff.Bytes(), &result))
 		})

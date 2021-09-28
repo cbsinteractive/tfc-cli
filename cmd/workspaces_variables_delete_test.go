@@ -52,8 +52,8 @@ func TestWorkspacesVariablesDelete(t *testing.T) {
 			mockedOSProxy.On("lookupEnv", "TFC_TOKEN").Return(d.token, true)
 			mockWorkspacesProxy := mockWorkspacesProxy{}
 			mockWorkspacesProxy.On("read", mock.Anything, mock.Anything, d.organization, d.workspace).Return(&tfe.Workspace{ID: d.workspaceID}, nil)
-			variables := mockWorkspacesVariablesProxy{}
-			variables.On("list", mock.Anything, mock.Anything, d.workspaceID, mock.Anything).Return(&tfe.VariableList{
+			mockedVariablesProxy := mockWorkspacesVariablesProxy{}
+			mockedVariablesProxy.On("list", mock.Anything, mock.Anything, d.workspaceID, mock.Anything).Return(&tfe.VariableList{
 				Items: []*tfe.Variable{
 					{
 						ID:  d.variableID,
@@ -61,7 +61,7 @@ func TestWorkspacesVariablesDelete(t *testing.T) {
 					},
 				},
 			}, nil)
-			variables.On(
+			mockedVariablesProxy.On(
 				"delete",
 				mock.Anything,
 				mock.Anything,
@@ -77,7 +77,7 @@ func TestWorkspacesVariablesDelete(t *testing.T) {
 					client: clientProxy{
 						workspaces: mockWorkspacesProxy,
 						workspacesCommands: workspacesCommands{
-							variables: variables,
+							variables: mockedVariablesProxy,
 						},
 					},
 					os: mockedOSProxy,
@@ -88,7 +88,7 @@ func TestWorkspacesVariablesDelete(t *testing.T) {
 			assert.Nil(t, err)
 			mockedOSProxy.AssertExpectations(t)
 			mockWorkspacesProxy.AssertExpectations(t)
-			variables.AssertExpectations(t)
+			mockedVariablesProxy.AssertExpectations(t)
 		})
 	}
 }

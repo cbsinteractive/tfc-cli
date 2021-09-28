@@ -67,8 +67,8 @@ func TestWorkspacesVariablesList(t *testing.T) {
 			mockedOSProxy.On("lookupEnv", "TFC_TOKEN").Return(d.token, true)
 			mockedWorkspacesProxy := mockWorkspacesProxy{}
 			mockedWorkspacesProxy.On("read", mock.Anything, mock.Anything, d.organization, d.workspace).Return(d.workspaceReadResult, d.workspaceReadError)
-			mockedVariables := mockWorkspacesVariablesProxy{}
-			mockedVariables.On("list", mock.Anything, mock.Anything, d.workspaceID, mock.Anything).Return(d.variablesListResult, d.variablesListError)
+			mockedVariablesProxy := mockWorkspacesVariablesProxy{}
+			mockedVariablesProxy.On("list", mock.Anything, mock.Anything, d.workspaceID, mock.Anything).Return(d.variablesListResult, d.variablesListError)
 
 			// Code under test
 			err := root(
@@ -78,7 +78,7 @@ func TestWorkspacesVariablesList(t *testing.T) {
 					client: clientProxy{
 						workspaces: mockedWorkspacesProxy,
 						workspacesCommands: workspacesCommands{
-							variables: mockedVariables,
+							variables: mockedVariablesProxy,
 						},
 					},
 					os: mockedOSProxy,
