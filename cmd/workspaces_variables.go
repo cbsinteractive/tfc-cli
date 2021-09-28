@@ -28,6 +28,7 @@ func (c *WorkspacesVariablesCmd) Init(args []string) error {
 	}
 	runners := []Runner{
 		newWorkspacesVariablesCreateCmd(c.deps, c.w),
+		newWorkspacesVariablesDeleteCmd(c.deps, c.w),
 		newWorkspacesVariablesListCmd(c.deps, c.w),
 		newWorkspacesVariablesUpdateCmd(c.deps, c.w),
 	}

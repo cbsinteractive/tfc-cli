@@ -54,6 +54,11 @@ func (m mockWorkspacesVariablesProxy) create(client *tfe.Client, ctx context.Con
 	return args.Get(0).(*tfe.Variable), args.Error(1)
 }
 
+func (m mockWorkspacesVariablesProxy) delete(client *tfe.Client, ctx context.Context, workspaceID string, variableID string) error {
+	args := m.Called(client, ctx, workspaceID, variableID)
+	return args.Error(0)
+}
+
 func (m mockWorkspacesVariablesProxy) list(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.VariableListOptions) (*tfe.VariableList, error) {
 	args := m.Called(client, ctx, workspaceID, options)
 	return args.Get(0).(*tfe.VariableList), args.Error(1)
