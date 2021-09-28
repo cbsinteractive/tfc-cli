@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/cbsinteractive/tfc-cli/cmd"
@@ -13,7 +12,7 @@ func main() {
 		Writer:  os.Stdout,
 	}
 	if err := cmd.Execute(options); err != nil {
-		fmt.Println(err)
+		// Command handlers are responsible for output
 		os.Exit(1)
 	}
 }
