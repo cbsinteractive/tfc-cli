@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"flag"
 	"io"
@@ -11,7 +10,8 @@ import (
 )
 
 type WorkspacesShowCommandResult struct {
-	Result *tfe.Workspace `json:"result"`
+	ID          string `json:"id"`
+	Description string `json:"description"`
 }
 
 type workspacesShowCmd struct {
@@ -68,9 +68,9 @@ func (c *workspacesShowCmd) Run() error {
 	if c.commonOpts.quiet {
 		return nil
 	}
-	d, _ := json.Marshal(WorkspacesShowCommandResult{
-		Result: w,
-	})
-	c.w.Write(d)
+	c.w.Write(newCommandResultOutput(WorkspacesShowCommandResult{
+		ID:          w.ID,
+		Description: w.Description,
+	}))
 	return nil
 }

@@ -57,8 +57,8 @@ type commonOpts struct {
 }
 
 type CommandResult struct {
-	Error  string `json:"error,omitempty"`
-	Result string `json:"result,omitempty"`
+	Error  string      `json:"error,omitempty"`
+	Result interface{} `json:"result,omitempty"`
 }
 
 func Execute(options ExecuteOpts) error {
