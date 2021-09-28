@@ -30,7 +30,7 @@ Make a workspace variable sensitive:
 tfc-cli workspaces variables update sensitive -workspace foo -key bar -sensitive=true
 ```
 
-Note the `-senstive=<bool>` syntax. This is required.
+Note the `-sensitive=<bool>` syntax. This is required.
 
 Delete a workspace variable:
 
