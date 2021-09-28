@@ -21,6 +21,9 @@ func TestWorkspacesVariablesUpdateDescription(t *testing.T) {
 		variableKey         string
 		variableID          string
 		expectedDescription string
+		updateResult        *tfe.Variable
+		updateError         error
+		expectedOutput      CommandResult
 	}{
 		{
 			"update existing variable value",
@@ -39,6 +42,19 @@ func TestWorkspacesVariablesUpdateDescription(t *testing.T) {
 			"bar",
 			"some variable id",
 			"baz",
+			&tfe.Variable{
+				ID:          "some variable id",
+				Key:         "bar",
+				Description: "baz",
+			},
+			nil,
+			CommandResult{
+				Result: map[string]interface{}{
+					"id":          "some variable id",
+					"key":         "bar",
+					"description": "baz",
+				},
+			},
 		},
 	}
 	for _, d := range testConfigs {
@@ -72,7 +88,7 @@ func TestWorkspacesVariablesUpdateDescription(t *testing.T) {
 				d.variableID,
 				tfe.VariableUpdateOptions{
 					Description: &d.expectedDescription,
-				}).Return(&tfe.Variable{}, nil)
+				}).Return(d.updateResult, d.updateError)
 
 			// Code under test
 			err := root(
@@ -94,8 +110,10 @@ func TestWorkspacesVariablesUpdateDescription(t *testing.T) {
 			mockedOSProxy.AssertExpectations(t)
 			mockWorkspacesProxy.AssertExpectations(t)
 			mockedVariablesProxy.AssertExpectations(t)
-			result := WorkspacesVariablesUpdateValueCommandResult{}
-			assert.Nil(t, json.Unmarshal(buff.Bytes(), &result))
+			var result CommandResult
+			err = json.Unmarshal(buff.Bytes(), &result)
+			assert.Nil(t, err)
+			assert.Equal(t, d.expectedOutput, result)
 		})
 	}
 }

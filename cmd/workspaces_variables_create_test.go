@@ -25,6 +25,9 @@ func TestWorkspacesVariablesCreate(t *testing.T) {
 		expectedCategory    tfe.CategoryType
 		expectedSensitive   bool
 		expectedHCL         bool
+		createResult        *tfe.Variable
+		createError         error
+		expectedOutput      CommandResult
 	}{
 		{
 			"create a new variable",
@@ -53,6 +56,27 @@ func TestWorkspacesVariablesCreate(t *testing.T) {
 			"terraform",
 			false,
 			false,
+			&tfe.Variable{
+				ID:          "some variable id",
+				Key:         "bar",
+				Value:       "baz",
+				Category:    "terraform",
+				Description: "quux",
+				Sensitive:   false,
+				HCL:         false,
+			},
+			nil,
+			CommandResult{
+				Result: map[string]interface{}{
+					"id":          "some variable id",
+					"key":         "bar",
+					"value":       "baz",
+					"category":    "terraform",
+					"description": "quux",
+					"sensitive":   false,
+					"hcl":         false,
+				},
+			},
 		},
 	}
 	for _, d := range testConfigs {
@@ -82,7 +106,7 @@ func TestWorkspacesVariablesCreate(t *testing.T) {
 					Category:    &d.expectedCategory,
 					Sensitive:   &d.expectedSensitive,
 					HCL:         &d.expectedHCL,
-				}).Return(&tfe.Variable{}, nil)
+				}).Return(d.createResult, d.createError)
 
 			// Code under test
 			err := root(
@@ -104,8 +128,10 @@ func TestWorkspacesVariablesCreate(t *testing.T) {
 			mockedOSProxy.AssertExpectations(t)
 			mockWorkspacesProxy.AssertExpectations(t)
 			mockedVariablesProxy.AssertExpectations(t)
-			result := WorkspacesVariablesUpdateValueCommandResult{}
-			assert.Nil(t, json.Unmarshal(buff.Bytes(), &result))
+			var result CommandResult
+			err = json.Unmarshal(buff.Bytes(), &result)
+			assert.Nil(t, err)
+			assert.Equal(t, d.expectedOutput, result)
 		})
 	}
 }

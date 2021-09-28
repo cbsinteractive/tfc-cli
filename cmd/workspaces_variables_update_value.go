@@ -2,13 +2,18 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"flag"
 	"io"
 
 	"github.com/hashicorp/go-tfe"
 )
+
+type WorkspacesVariablesUpdateValueCommandResult struct {
+	ID    string `json:"id"`
+	Key   string `json:"key"`
+	Value string `json:"key"`
+}
 
 type VariableUpdateValueOpts struct {
 	key   string
@@ -22,10 +27,6 @@ type workspacesVariablesUpdateValueCmd struct {
 	WorkspaceOpts
 	VariableUpdateValueOpts
 	w io.Writer
-}
-
-type WorkspacesVariablesUpdateValueCommandResult struct {
-	Result *tfe.Variable
 }
 
 func newWorkspacesVariablesUpdateValueCmd(deps dependencyProxies, w io.Writer) *workspacesVariablesUpdateValueCmd {
@@ -90,9 +91,10 @@ func (c *workspacesVariablesUpdateValueCmd) Run() error {
 	if u == nil {
 		return errors.New("variable and error both nil")
 	}
-	d, _ := json.Marshal(WorkspacesVariablesUpdateValueCommandResult{
-		Result: u,
-	})
-	c.w.Write(d)
+	c.w.Write(newCommandResultOutput(WorkspacesVariablesUpdateValueCommandResult{
+		ID:    u.ID,
+		Key:   u.Key,
+		Value: u.Value,
+	}))
 	return nil
 }
