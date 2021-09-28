@@ -67,7 +67,7 @@ func TestWorkspacesShow(t *testing.T) {
 			"foo",
 			nil,
 			errors.New("resource not found"),
-			false,
+			true,
 			CommandResult{
 				Error: "resource not found",
 			},
