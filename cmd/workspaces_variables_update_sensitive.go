@@ -2,13 +2,18 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"flag"
 	"io"
 
 	"github.com/hashicorp/go-tfe"
 )
+
+type WorkspacesVariablesUpdateSensitiveCommandResult struct {
+	ID        string `json:"id"`
+	Key       string `json:"key"`
+	Sensitive bool   `json:"sensitive"`
+}
 
 type VariableUpdateSensitiveOpts struct {
 	key       string
@@ -22,10 +27,6 @@ type workspacesVariablesUpdateSensitiveCmd struct {
 	WorkspaceOpts
 	VariableUpdateSensitiveOpts
 	w io.Writer
-}
-
-type WorkspacesVariablesUpdateSensitiveCommandResult struct {
-	Result *tfe.Variable
 }
 
 func newWorkspacesVariablesUpdateSensitiveCmd(deps dependencyProxies, w io.Writer) *workspacesVariablesUpdateSensitiveCmd {
@@ -90,9 +91,10 @@ func (c *workspacesVariablesUpdateSensitiveCmd) Run() error {
 	if u == nil {
 		return errors.New("variable and error both nil")
 	}
-	d, _ := json.Marshal(WorkspacesVariablesUpdateValueCommandResult{
-		Result: u,
-	})
-	c.w.Write(d)
+	c.w.Write(newCommandResultOutput(WorkspacesVariablesUpdateSensitiveCommandResult{
+		ID:        u.ID,
+		Key:       u.Key,
+		Sensitive: u.Sensitive,
+	}))
 	return nil
 }

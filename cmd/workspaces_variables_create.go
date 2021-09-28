@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -31,7 +30,13 @@ type workspacesVariablesCreateCmd struct {
 }
 
 type WorkspacesVariablesCreateCommandResult struct {
-	Result *tfe.Variable
+	ID          string `json:"id"`
+	Key         string `json:"key"`
+	Value       string `json:"value"`
+	Category    string `json:"category"`
+	Description string `json:"description"`
+	Sensitive   bool   `json:"sensitive"`
+	HCL         bool   `json:"hcl"`
 }
 
 func newWorkspacesVariablesCreateCmd(deps dependencyProxies, w io.Writer) *workspacesVariablesCreateCmd {
@@ -43,8 +48,8 @@ func newWorkspacesVariablesCreateCmd(deps dependencyProxies, w io.Writer) *works
 	setCommonFlagsetOptions(c.fs, &c.OrgOpts, &c.WorkspaceOpts)
 	c.fs.StringVar(&c.VariableCreateOpts.key, "key", "", string(VariableKeyUsage))
 	c.fs.StringVar(&c.VariableCreateOpts.value, "value", "", string(VariableValueUsage))
-	c.fs.StringVar(&c.VariableCreateOpts.description, "description", "", string(VariableDescriptionUsage))
 	c.fs.StringVar(&c.VariableCreateOpts.categoryRaw, "category", "", string(VariableCategoryUsage))
+	c.fs.StringVar(&c.VariableCreateOpts.description, "description", "", string(VariableDescriptionUsage))
 	c.fs.BoolVar(&c.VariableCreateOpts.sensitive, "sensitive", false, string(VariableSensitiveUsage))
 	c.fs.BoolVar(&c.VariableCreateOpts.hcl, "hcl", false, string(VariableHCLUsage))
 	return c
@@ -97,8 +102,8 @@ func (c *workspacesVariablesCreateCmd) Run() error {
 	options := tfe.VariableCreateOptions{
 		Key:         &c.VariableCreateOpts.key,
 		Value:       &c.VariableCreateOpts.value,
-		Description: &c.VariableCreateOpts.description,
 		Category:    &c.VariableCreateOpts.category,
+		Description: &c.VariableCreateOpts.description,
 		Sensitive:   &c.VariableCreateOpts.sensitive,
 		HCL:         &c.VariableCreateOpts.hcl,
 	}
@@ -109,9 +114,14 @@ func (c *workspacesVariablesCreateCmd) Run() error {
 	if v == nil {
 		return errors.New("variable and error both nil")
 	}
-	d, _ := json.Marshal(WorkspacesVariablesCreateCommandResult{
-		Result: v,
-	})
-	c.w.Write(d)
+	c.w.Write(newCommandResultOutput(WorkspacesVariablesCreateCommandResult{
+		ID:          v.ID,
+		Key:         v.Key,
+		Value:       v.Value,
+		Category:    string(v.Category),
+		Description: v.Description,
+		Sensitive:   v.Sensitive,
+		HCL:         v.HCL,
+	}))
 	return nil
 }
