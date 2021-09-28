@@ -23,6 +23,7 @@ const (
 	TokenUsage               Usage = "Organization token"
 	WorkspaceUsage           Usage = "Workspace name"
 	OutputNameUsage          Usage = "Output variable name"
+	QuietUsage               Usage = "Quiet output"
 	VariableKeyUsage         Usage = "Variable key"
 	VariableValueUsage       Usage = "Variable value"
 	VariableDescriptionUsage Usage = "Variable description"
@@ -49,6 +50,10 @@ type WorkspaceOpts struct {
 type ExecuteOpts struct {
 	AppName string
 	Writer  io.Writer
+}
+
+type commonOpts struct {
+	quiet bool
 }
 
 type CommandResult struct {
