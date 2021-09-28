@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/go-tfe"
@@ -18,4 +19,18 @@ func variableFromKey(client *tfe.Client, proxy clientProxy, ctx context.Context,
 		}
 	}
 	return nil, fmt.Errorf("variable %s not found", key)
+}
+
+func newCommandResultOutput(v interface{}) []byte {
+	d, _ := json.Marshal(CommandResult{
+		Result: fmt.Sprintf("%v", v),
+	})
+	return append(d, '\n')
+}
+
+func newCommandErrorOutput(err error) []byte {
+	d, _ := json.Marshal(CommandResult{
+		Error: err.Error(),
+	})
+	return append(d, '\n')
 }

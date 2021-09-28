@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -72,6 +71,7 @@ func (c *StateVersionsCurrentGetOutputCmd) Run() error {
 	}
 	w, err := c.deps.client.workspaces.read(client, ctx, c.OrgOpts.name, c.WorkspaceOpts.name)
 	if err != nil {
+		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	version, err := c.deps.client.stateVersions.currentWithOptions(
@@ -81,20 +81,15 @@ func (c *StateVersionsCurrentGetOutputCmd) Run() error {
 		&tfe.StateVersionCurrentOptions{Include: "outputs"},
 	)
 	if err != nil {
+		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	for _, v := range version.Outputs {
 		if v.Name == c.OutputOpts.name {
-			d, _ := json.Marshal(CommandResult{
-				Result: fmt.Sprintf("%v", v.Value),
-			})
-			c.w.Write(d)
+			c.w.Write(newCommandResultOutput(v.Value))
 			return nil
 		}
 	}
-	d, _ := json.Marshal(CommandResult{
-		Error: fmt.Sprintf("%s not found", c.OutputOpts.name),
-	})
-	c.w.Write(d)
+	c.w.Write(newCommandErrorOutput(fmt.Errorf("%s not found", c.OutputOpts.name)))
 	return nil
 }
