@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"testing"
 
@@ -11,6 +12,20 @@ import (
 )
 
 func TestWorkspacesShow(t *testing.T) {
+	newDefaultWorkspace := func() *tfe.Workspace {
+		return &tfe.Workspace{
+			ID:          "some workspace id",
+			Description: "some workspace description",
+		}
+	}
+	newDefaultCommandResult := func() CommandResult {
+		return CommandResult{
+			Result: map[string]interface{}{
+				"id":          "some workspace id",
+				"description": "some workspace description",
+			},
+		}
+	}
 	testConfigs := []struct {
 		description         string
 		args                []string
@@ -20,6 +35,7 @@ func TestWorkspacesShow(t *testing.T) {
 		workspaceShowResult *tfe.Workspace
 		workspaceShowError  error
 		expectOutput        bool
+		expectedOutput      CommandResult
 	}{
 		{
 			"show existing workspace",
@@ -27,9 +43,10 @@ func TestWorkspacesShow(t *testing.T) {
 			"some org",
 			"some token",
 			"foo",
-			&tfe.Workspace{},
+			newDefaultWorkspace(),
 			nil,
 			true,
+			newDefaultCommandResult(),
 		},
 		{
 			"show existing workspace (quiet)",
@@ -37,9 +54,10 @@ func TestWorkspacesShow(t *testing.T) {
 			"some org",
 			"some token",
 			"foo",
-			&tfe.Workspace{},
+			newDefaultWorkspace(),
 			nil,
 			false,
+			newDefaultCommandResult(),
 		},
 		{
 			"show missing workspace",
@@ -50,6 +68,9 @@ func TestWorkspacesShow(t *testing.T) {
 			nil,
 			errors.New("resource not found"),
 			false,
+			CommandResult{
+				Error: "resource not found",
+			},
 		},
 	}
 	for _, d := range testConfigs {
@@ -89,6 +110,11 @@ func TestWorkspacesShow(t *testing.T) {
 			mockedWorkspacesProxy.AssertExpectations(t)
 			if !d.expectOutput {
 				assert.Empty(t, buff.String())
+			} else {
+				var result CommandResult
+				err := json.Unmarshal(buff.Bytes(), &result)
+				assert.Nil(t, err)
+				assert.Equal(t, d.expectedOutput, result)
 			}
 		})
 	}

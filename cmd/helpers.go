@@ -23,7 +23,7 @@ func variableFromKey(client *tfe.Client, proxy clientProxy, ctx context.Context,
 
 func newCommandResultOutput(v interface{}) []byte {
 	d, _ := json.Marshal(CommandResult{
-		Result: fmt.Sprintf("%v", v),
+		Result: v,
 	})
 	return append(d, '\n')
 }
