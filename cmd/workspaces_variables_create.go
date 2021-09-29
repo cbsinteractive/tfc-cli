@@ -61,6 +61,7 @@ func (c *workspacesVariablesCreateCmd) Name() string {
 
 func (c *workspacesVariablesCreateCmd) Init(args []string) error {
 	if err := c.fs.Parse(args); err != nil {
+		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	if err := processCommonInputs(
@@ -68,13 +69,18 @@ func (c *workspacesVariablesCreateCmd) Init(args []string) error {
 		&c.OrgOpts.name,
 		c.deps.os.lookupEnv,
 	); err != nil {
+		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	if c.WorkspaceOpts.name == "" {
-		return errors.New("-workspace argument is required")
+		err := errors.New("-workspace argument is required")
+		c.w.Write(newCommandErrorOutput(err))
+		return err
 	}
 	if c.VariableCreateOpts.key == "" {
-		return errors.New("-key argument is required")
+		err := errors.New("-key argument is required")
+		c.w.Write(newCommandErrorOutput(err))
+		return err
 	}
 	switch c.VariableCreateOpts.categoryRaw {
 	case "terraform":
@@ -82,7 +88,9 @@ func (c *workspacesVariablesCreateCmd) Init(args []string) error {
 	case "env":
 		c.VariableCreateOpts.category = tfe.CategoryEnv
 	default:
-		return fmt.Errorf(`invalid category: "%s"`, c.VariableCreateOpts.categoryRaw)
+		err := fmt.Errorf(`invalid category: "%s"`, c.VariableCreateOpts.categoryRaw)
+		c.w.Write(newCommandErrorOutput(err))
+		return err
 	}
 	return nil
 }
@@ -93,10 +101,12 @@ func (c *workspacesVariablesCreateCmd) Run() error {
 		Token: c.OrgOpts.token,
 	})
 	if err != nil {
+		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	w, err := c.deps.client.workspaces.read(client, ctx, c.OrgOpts.name, c.WorkspaceOpts.name)
 	if err != nil {
+		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	options := tfe.VariableCreateOptions{
@@ -109,10 +119,13 @@ func (c *workspacesVariablesCreateCmd) Run() error {
 	}
 	v, err := c.deps.client.variables.create(client, ctx, w.ID, options)
 	if err != nil {
+		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	if v == nil {
-		return errors.New("variable and error both nil")
+		err := errors.New("variable and error both nil")
+		c.w.Write(newCommandErrorOutput(err))
+		return err
 	}
 	c.w.Write(newCommandResultOutput(WorkspacesVariablesCreateCommandResult{
 		ID:          v.ID,
