@@ -12,7 +12,7 @@ Go to the API Tokens page for the organization in which you will be setting up w
 
 `https://app.terraform.io/app/<YOUR ORG NAME>/settings/authentication-tokens`
 
-Do not **regenerate** a new token because this will invalidate the existing token and break any processes that are using it. Only do this if you're sure that's okay. Coordinate with your organization to obtain the token for use in yhour processes.
+Do not **regenerate** a new token because this will invalidate the existing token and break any processes that are using it. Only do this if you're sure that's okay. Coordinate with your organization to obtain the token for use in your processes.
 
 Save this API token in a secure manner, such as your password manager. If using the token in an automated process, ensure that it is stored in a secure manner, such as GitHub [encrypted secrets][].
 
