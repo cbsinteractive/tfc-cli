@@ -128,8 +128,9 @@ func (c *workspacesVariablesCreateCmd) Run() error {
 		return err
 	}
 	c.w.Write(newCommandResultOutput(WorkspacesVariablesCreateCommandResult{
-		ID:          v.ID,
-		Key:         v.Key,
+		ID:  v.ID,
+		Key: v.Key,
+		// The API provides an empty string if the variable is set as sensitive
 		Value:       v.Value,
 		Category:    string(v.Category),
 		Description: v.Description,
