@@ -43,6 +43,7 @@ func (c *StateVersionsCurrentGetOutputCmd) Name() string {
 
 func (c *StateVersionsCurrentGetOutputCmd) Init(args []string) error {
 	if err := c.fs.Parse(args); err != nil {
+		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	if err := processCommonInputs(
@@ -50,13 +51,18 @@ func (c *StateVersionsCurrentGetOutputCmd) Init(args []string) error {
 		&c.OrgOpts.name,
 		c.deps.os.lookupEnv,
 	); err != nil {
+		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	if c.WorkspaceOpts.name == "" {
-		return errors.New("-workspace argument is required")
+		err := errors.New("-workspace argument is required")
+		c.w.Write(newCommandErrorOutput(err))
+		return err
 	}
 	if c.OutputOpts.name == "" {
-		return errors.New("-name argument is required")
+		err := errors.New("-name argument is required")
+		c.w.Write(newCommandErrorOutput(err))
+		return err
 	}
 	return nil
 }
@@ -67,6 +73,7 @@ func (c *StateVersionsCurrentGetOutputCmd) Run() error {
 		Token: c.OrgOpts.token,
 	})
 	if err != nil {
+		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	w, err := c.deps.client.workspaces.read(client, ctx, c.OrgOpts.name, c.WorkspaceOpts.name)

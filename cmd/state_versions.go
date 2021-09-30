@@ -24,7 +24,9 @@ func (c *StateVersionsCmd) Name() string {
 
 func (c *StateVersionsCmd) Init(args []string) error {
 	if len(args) < 1 {
-		return errors.New("no subcommand given")
+		err := errors.New("no subcommand given")
+		c.w.Write(newCommandErrorOutput(err))
+		return err
 	}
 	runners := []Runner{
 		NewStateVersionsCurrentCmd(c.deps, c.w),
