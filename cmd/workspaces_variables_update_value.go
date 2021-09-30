@@ -47,6 +47,7 @@ func (c *workspacesVariablesUpdateValueCmd) Name() string {
 
 func (c *workspacesVariablesUpdateValueCmd) Init(args []string) error {
 	if err := c.fs.Parse(args); err != nil {
+		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	if err := processCommonInputs(
@@ -54,13 +55,18 @@ func (c *workspacesVariablesUpdateValueCmd) Init(args []string) error {
 		&c.OrgOpts.name,
 		c.deps.os.lookupEnv,
 	); err != nil {
+		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	if c.WorkspaceOpts.name == "" {
-		return errors.New("-workspace argument is required")
+		err := errors.New("-workspace argument is required")
+		c.w.Write(newCommandErrorOutput(err))
+		return err
 	}
 	if c.VariableUpdateValueOpts.key == "" {
-		return errors.New("-key argument is required")
+		err := errors.New("-key argument is required")
+		c.w.Write(newCommandErrorOutput(err))
+		return err
 	}
 	return nil
 }
