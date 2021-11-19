@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 
 	"github.com/hashicorp/go-tfe"
 )
@@ -33,4 +34,8 @@ func newCommandErrorOutput(err error) []byte {
 		Error: err.Error(),
 	})
 	return append(d, '\n')
+}
+
+func outputError(w io.Writer, err error) {
+	w.Write([]byte(fmt.Sprintf("%s\n", err)))
 }

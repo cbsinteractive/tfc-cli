@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"io"
 )
 
@@ -25,9 +24,6 @@ func (c *WorkspacesCmd) Name() string {
 }
 
 func (c *WorkspacesCmd) Init(args []string) error {
-	if len(args) < 1 {
-		return errors.New("no subcommand given")
-	}
 	runners := []Runner{
 		newWorkspacesCreateCmd(c.deps, c.w, c.appName),
 		newWorkspacesDeleteCmd(c.deps, c.w),

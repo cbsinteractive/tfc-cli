@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"io"
 )
 
@@ -23,11 +22,6 @@ func (c *StateVersionsCurrentCmd) Name() string {
 }
 
 func (c *StateVersionsCurrentCmd) Init(args []string) error {
-	if len(args) < 1 {
-		err := errors.New("no subcommand given")
-		c.w.Write(newCommandErrorOutput(err))
-		return err
-	}
 	runners := []Runner{
 		NewStateVersionsCurrentGetOutputCmd(c.deps, c.w),
 	}

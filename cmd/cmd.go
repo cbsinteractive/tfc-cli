@@ -78,7 +78,9 @@ func Execute(options ExecuteOpts) error {
 
 func root(options ExecuteOpts, args []string, deps dependencyProxies) error {
 	if len(args) < 1 {
-		return errors.New("no subcommand given")
+		err := errors.New("no subcommand given")
+		outputError(options.Writer, err)
+		return err
 	}
 	runners := []Runner{
 		NewStateVersionsCmd(deps, options.Writer),
@@ -89,12 +91,19 @@ func root(options ExecuteOpts, args []string, deps dependencyProxies) error {
 	for _, r := range runners {
 		if r.Name() == subcommand {
 			if err := r.Init(args[1:]); err != nil {
+				outputError(options.Writer, err)
 				return err
 			}
-			return r.Run()
+			if err := r.Run(); err != nil {
+				outputError(options.Writer, err)
+				return err
+			}
+			return nil
 		}
 	}
-	return fmt.Errorf("unknown subcommand: %s", subcommand)
+	err := fmt.Errorf("unknown subcommand: %s", subcommand)
+	outputError(options.Writer, err)
+	return err
 }
 
 func setCommonFlagsetOptions(fs *flag.FlagSet, o *OrgOpts, w *WorkspaceOpts) {
