@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"testing"
 
 	"github.com/hashicorp/go-tfe"
@@ -20,7 +21,8 @@ func TestWorkspacesVCSShow(t *testing.T) {
 		workspaceID          string
 		workspaceReadResult  *tfe.Workspace
 		workspaceReadError   error
-		expectedResultObject CommandResult
+		expectedResultObject *CommandResult
+		expectedError        error
 	}{
 		{
 			"VCS repo object is nil",
@@ -33,18 +35,32 @@ func TestWorkspacesVCSShow(t *testing.T) {
 				ID: "some workspace id",
 			},
 			nil,
-			CommandResult{
+			&CommandResult{
 				Result: "VCS repo not set",
 			},
+			nil,
+		},
+		{
+			"invalid workspace",
+			[]string{"-workspace", "some workspace"},
+			"some org",
+			"some token",
+			"some workspace",
+			"some workspace id",
+			nil,
+			errors.New("foo"),
+			nil,
+			errors.New("foo"),
 		},
 	}
 	for _, d := range testConfigs {
 		t.Run(d.description, func(t *testing.T) {
 			args := append([]string{"workspaces", "vcs", "show"}, d.args...)
-			var buff bytes.Buffer
+			var stdBuff, errBuff bytes.Buffer
 			options := ExecuteOpts{
 				AppName: "tfc-cli",
-				Stdout:  &buff,
+				Stdout:  &stdBuff,
+				Stderr:  &errBuff,
 			}
 			mockedOSProxy := mockOSProxy{}
 			mockedOSProxy.On("lookupEnv", "TFC_ORG").Return(d.organization, true)
@@ -68,10 +84,18 @@ func TestWorkspacesVCSShow(t *testing.T) {
 			)
 
 			// Verify
-			assert.Nil(t, err)
-			r := CommandResult{}
-			json.Unmarshal(buff.Bytes(), &r)
-			assert.Equal(t, d.expectedResultObject, r)
+			if d.expectedError == nil {
+				assert.Nil(t, err)
+			} else {
+				assert.EqualError(t, err, d.expectedError.Error())
+			}
+			if d.expectedResultObject != nil {
+				r := CommandResult{}
+				json.Unmarshal(stdBuff.Bytes(), &r)
+				assert.Equal(t, *d.expectedResultObject, r)
+			} else {
+				assert.Empty(t, stdBuff.String())
+			}
 		})
 	}
 }
