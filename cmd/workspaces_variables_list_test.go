@@ -60,7 +60,7 @@ func TestWorkspacesVariablesList(t *testing.T) {
 			var buff bytes.Buffer
 			options := ExecuteOpts{
 				AppName: "tfc-cli",
-				Writer:  &buff,
+				Stdout:  &buff,
 			}
 			mockedOSProxy := mockOSProxy{}
 			mockedOSProxy.On("lookupEnv", "TFC_ORG").Return(d.organization, true)

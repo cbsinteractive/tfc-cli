@@ -91,10 +91,10 @@ func (c *workspacesVariablesUpdateSensitiveCmd) Run() error {
 	if u == nil {
 		return errors.New("variable and error both nil")
 	}
-	c.w.Write(newCommandResultOutput(WorkspacesVariablesUpdateSensitiveCommandResult{
+	output(c.w, WorkspacesVariablesUpdateSensitiveCommandResult{
 		ID:        u.ID,
 		Key:       u.Key,
 		Sensitive: u.Sensitive,
-	}))
+	})
 	return nil
 }

@@ -23,6 +23,11 @@ type StateVersionsCurrentGetOutputCmd struct {
 	w io.Writer
 }
 
+type StateVersionsCurrentGetOutputCommandResult struct {
+	Name  string      `json:"name"`
+	Value interface{} `json:"value"`
+}
+
 func NewStateVersionsCurrentGetOutputCmd(
 	deps dependencyProxies,
 	w io.Writer,
@@ -43,7 +48,6 @@ func (c *StateVersionsCurrentGetOutputCmd) Name() string {
 
 func (c *StateVersionsCurrentGetOutputCmd) Init(args []string) error {
 	if err := c.fs.Parse(args); err != nil {
-		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	if err := processCommonInputs(
@@ -51,18 +55,13 @@ func (c *StateVersionsCurrentGetOutputCmd) Init(args []string) error {
 		&c.OrgOpts.name,
 		c.deps.os.lookupEnv,
 	); err != nil {
-		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	if c.WorkspaceOpts.name == "" {
-		err := errors.New("-workspace argument is required")
-		c.w.Write(newCommandErrorOutput(err))
-		return err
+		return errors.New("-workspace argument is required")
 	}
 	if c.OutputOpts.name == "" {
-		err := errors.New("-name argument is required")
-		c.w.Write(newCommandErrorOutput(err))
-		return err
+		return errors.New("-name argument is required")
 	}
 	return nil
 }
@@ -73,12 +72,10 @@ func (c *StateVersionsCurrentGetOutputCmd) Run() error {
 		Token: c.OrgOpts.token,
 	})
 	if err != nil {
-		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	w, err := c.deps.client.workspaces.read(client, ctx, c.OrgOpts.name, c.WorkspaceOpts.name)
 	if err != nil {
-		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	version, err := c.deps.client.stateVersions.currentWithOptions(
@@ -88,15 +85,16 @@ func (c *StateVersionsCurrentGetOutputCmd) Run() error {
 		&tfe.StateVersionCurrentOptions{Include: "outputs"},
 	)
 	if err != nil {
-		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	for _, v := range version.Outputs {
 		if v.Name == c.OutputOpts.name {
-			c.w.Write(newCommandResultOutput(v.Value))
+			output(c.w, StateVersionsCurrentGetOutputCommandResult{
+				Name:  v.Name,
+				Value: v.Value,
+			})
 			return nil
 		}
 	}
-	c.w.Write(newCommandErrorOutput(fmt.Errorf("%s not found", c.OutputOpts.name)))
-	return nil
+	return fmt.Errorf("%s not found", c.OutputOpts.name)
 }

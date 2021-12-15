@@ -9,10 +9,12 @@ import (
 func main() {
 	options := cmd.ExecuteOpts{
 		AppName: "tfc-cli",
-		Writer:  os.Stdout,
+		Stdout:  os.Stdout,
+		Stderr:  os.Stderr,
 	}
 	if err := cmd.Execute(options); err != nil {
-		// Command handlers are responsible for output
+		// If an error took place, code within the testable part of the
+		// application was expected to present output via os.Stderr
 		os.Exit(1)
 	}
 }

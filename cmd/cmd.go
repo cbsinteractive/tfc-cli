@@ -49,16 +49,12 @@ type WorkspaceOpts struct {
 
 type ExecuteOpts struct {
 	AppName string
-	Writer  io.Writer
+	Stdout  io.Writer
+	Stderr  io.Writer
 }
 
 type commonOpts struct {
 	quiet bool
-}
-
-type CommandResult struct {
-	Error  string      `json:"error,omitempty"`
-	Result interface{} `json:"result,omitempty"`
 }
 
 func Execute(options ExecuteOpts) error {
@@ -78,23 +74,32 @@ func Execute(options ExecuteOpts) error {
 
 func root(options ExecuteOpts, args []string, deps dependencyProxies) error {
 	if len(args) < 1 {
-		return errors.New("no subcommand given")
+		err := errors.New("no subcommand given")
+		outputError(options.Stderr, err)
+		return err
 	}
 	runners := []Runner{
-		NewStateVersionsCmd(deps, options.Writer),
-		NewVersionCmd(options.Writer),
+		NewStateVersionsCmd(deps, options.Stdout),
+		NewVersionCmd(options.Stdout),
 		NewWorkspacesCmd(options, deps),
 	}
 	subcommand := args[0]
 	for _, r := range runners {
 		if r.Name() == subcommand {
 			if err := r.Init(args[1:]); err != nil {
+				outputError(options.Stderr, err)
 				return err
 			}
-			return r.Run()
+			if err := r.Run(); err != nil {
+				outputError(options.Stderr, err)
+				return err
+			}
+			return nil
 		}
 	}
-	return fmt.Errorf("unknown subcommand: %s", subcommand)
+	err := fmt.Errorf("unknown subcommand: %s", subcommand)
+	outputError(options.Stderr, err)
+	return err
 }
 
 func setCommonFlagsetOptions(fs *flag.FlagSet, o *OrgOpts, w *WorkspaceOpts) {

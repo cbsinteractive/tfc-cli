@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 
 	"github.com/hashicorp/go-tfe"
 )
@@ -21,16 +22,28 @@ func variableFromKey(client *tfe.Client, proxy clientProxy, ctx context.Context,
 	return nil, fmt.Errorf("variable %s not found", key)
 }
 
-func newCommandResultOutput(v interface{}) []byte {
-	d, _ := json.Marshal(CommandResult{
-		Result: v,
-	})
-	return append(d, '\n')
+type CommandResult struct {
+	Result interface{} `json:"result,omitempty"`
 }
 
-func newCommandErrorOutput(err error) []byte {
-	d, _ := json.Marshal(CommandResult{
+func output(w io.Writer, result interface{}) {
+	r := CommandResult{
+		Result: result,
+	}
+	d, _ := json.Marshal(r)
+	d = append(d, '\n')
+	w.Write(d)
+}
+
+type CommandError struct {
+	Error string `json:"error,omitempty"`
+}
+
+func outputError(w io.Writer, err error) {
+	r := CommandError{
 		Error: err.Error(),
-	})
-	return append(d, '\n')
+	}
+	d, _ := json.Marshal(r)
+	d = append(d, '\n')
+	w.Write(d)
 }

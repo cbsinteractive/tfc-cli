@@ -44,7 +44,7 @@ func TestWorkspacesVariablesDelete(t *testing.T) {
 			var buff bytes.Buffer
 			options := ExecuteOpts{
 				AppName: "tfc-cli",
-				Writer:  &buff,
+				Stdout:  &buff,
 			}
 			// Set up expectations
 			mockedOSProxy := mockOSProxy{}

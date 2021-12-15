@@ -18,13 +18,15 @@ func TestWorkspacesShow(t *testing.T) {
 			Description: "some workspace description",
 		}
 	}
-	newDefaultCommandResult := func() CommandResult {
-		return CommandResult{
-			Result: map[string]interface{}{
-				"id":          "some workspace id",
-				"description": "some workspace description",
+	newDefaultCommandResult := func() string {
+		d, _ := json.Marshal(CommandResult{
+			Result: WorkspacesShowCommandResult{
+				ID:          "some workspace id",
+				Description: "some workspace description",
 			},
-		}
+		})
+		d = append(d, '\n')
+		return string(d)
 	}
 	testConfigs := []struct {
 		description         string
@@ -33,9 +35,9 @@ func TestWorkspacesShow(t *testing.T) {
 		token               string
 		workspace           string
 		workspaceShowResult *tfe.Workspace
-		workspaceShowError  error
-		expectOutput        bool
-		expectedOutput      CommandResult
+		expectedError       error
+		expectedOutput      string
+		expectedErrorOutput string
 	}{
 		{
 			"show existing workspace",
@@ -45,8 +47,8 @@ func TestWorkspacesShow(t *testing.T) {
 			"foo",
 			newDefaultWorkspace(),
 			nil,
-			true,
 			newDefaultCommandResult(),
+			"",
 		},
 		{
 			"show existing workspace (quiet)",
@@ -56,8 +58,8 @@ func TestWorkspacesShow(t *testing.T) {
 			"foo",
 			newDefaultWorkspace(),
 			nil,
-			false,
-			newDefaultCommandResult(),
+			"",
+			"",
 		},
 		{
 			"show missing workspace",
@@ -67,26 +69,25 @@ func TestWorkspacesShow(t *testing.T) {
 			"foo",
 			nil,
 			errors.New("resource not found"),
-			true,
-			CommandResult{
-				Error: "resource not found",
-			},
+			"",
+			"{\"error\":\"resource not found\"}\n",
 		},
 	}
 	for _, d := range testConfigs {
 		t.Run(d.description, func(t *testing.T) {
 			args := append([]string{"workspaces", "show"}, d.args...)
-			var buff bytes.Buffer
+			var outBuff, errBuff bytes.Buffer
 			options := ExecuteOpts{
 				AppName: "tfc-cli",
-				Writer:  &buff,
+				Stdout:  &outBuff,
+				Stderr:  &errBuff,
 			}
 			// Set up expectations
 			mockedOSProxy := mockOSProxy{}
 			mockedOSProxy.On("lookupEnv", "TFC_ORG").Return(d.organization, true)
 			mockedOSProxy.On("lookupEnv", "TFC_TOKEN").Return(d.token, true)
 			mockedWorkspacesProxy := mockWorkspacesProxy{}
-			mockedWorkspacesProxy.On("read", mock.Anything, mock.Anything, d.organization, d.workspace).Return(d.workspaceShowResult, d.workspaceShowError)
+			mockedWorkspacesProxy.On("read", mock.Anything, mock.Anything, d.organization, d.workspace).Return(d.workspaceShowResult, d.expectedError)
 
 			// Code under test
 			err := root(
@@ -101,21 +102,15 @@ func TestWorkspacesShow(t *testing.T) {
 			)
 
 			// Verify
-			if d.workspaceShowError != nil {
-				assert.Same(t, d.workspaceShowError, err)
+			if d.expectedError != nil {
+				assert.Same(t, d.expectedError, err)
 			} else {
 				assert.Nil(t, err)
 			}
 			mockedOSProxy.AssertExpectations(t)
 			mockedWorkspacesProxy.AssertExpectations(t)
-			if !d.expectOutput {
-				assert.Empty(t, buff.String())
-			} else {
-				var result CommandResult
-				err := json.Unmarshal(buff.Bytes(), &result)
-				assert.Nil(t, err)
-				assert.Equal(t, d.expectedOutput, result)
-			}
+			assert.Equal(t, d.expectedOutput, outBuff.String())
+			assert.Equal(t, d.expectedErrorOutput, errBuff.String())
 		})
 	}
 }
