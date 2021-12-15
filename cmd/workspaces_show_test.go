@@ -36,8 +36,8 @@ func TestWorkspacesShow(t *testing.T) {
 		workspace           string
 		workspaceShowResult *tfe.Workspace
 		expectedError       error
-		expectOutput        bool
 		expectedOutput      string
+		expectedErrorOutput string
 	}{
 		{
 			"show existing workspace",
@@ -47,8 +47,8 @@ func TestWorkspacesShow(t *testing.T) {
 			"foo",
 			newDefaultWorkspace(),
 			nil,
-			true,
 			newDefaultCommandResult(),
+			"",
 		},
 		{
 			"show existing workspace (quiet)",
@@ -58,8 +58,8 @@ func TestWorkspacesShow(t *testing.T) {
 			"foo",
 			newDefaultWorkspace(),
 			nil,
-			false,
-			"unused",
+			"",
+			"",
 		},
 		{
 			"show missing workspace",
@@ -69,17 +69,18 @@ func TestWorkspacesShow(t *testing.T) {
 			"foo",
 			nil,
 			errors.New("resource not found"),
-			true,
+			"",
 			"resource not found\n",
 		},
 	}
 	for _, d := range testConfigs {
 		t.Run(d.description, func(t *testing.T) {
 			args := append([]string{"workspaces", "show"}, d.args...)
-			var buff bytes.Buffer
+			var outBuff, errBuff bytes.Buffer
 			options := ExecuteOpts{
 				AppName: "tfc-cli",
-				Writer:  &buff,
+				Stdout:  &outBuff,
+				Stderr:  &errBuff,
 			}
 			// Set up expectations
 			mockedOSProxy := mockOSProxy{}
@@ -108,11 +109,8 @@ func TestWorkspacesShow(t *testing.T) {
 			}
 			mockedOSProxy.AssertExpectations(t)
 			mockedWorkspacesProxy.AssertExpectations(t)
-			if !d.expectOutput {
-				assert.Empty(t, buff.String())
-			} else {
-				assert.Equal(t, d.expectedOutput, buff.String())
-			}
+			assert.Equal(t, d.expectedOutput, outBuff.String())
+			assert.Equal(t, d.expectedErrorOutput, errBuff.String())
 		})
 	}
 }

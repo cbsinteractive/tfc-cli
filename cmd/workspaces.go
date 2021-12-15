@@ -15,7 +15,7 @@ func NewWorkspacesCmd(options ExecuteOpts, deps dependencyProxies) *WorkspacesCm
 	return &WorkspacesCmd{
 		appName: options.AppName,
 		deps:    deps,
-		w:       options.Writer,
+		w:       options.Stdout,
 	}
 }
 
