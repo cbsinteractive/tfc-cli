@@ -83,7 +83,7 @@ func (c *workspacesCreateCmd) Run() error {
 		}
 		opts.VCSRepo = &vcsOpts
 	}
-	w, err := c.deps.client.workspaces.create(
+	workspace, err := c.deps.client.workspaces.create(
 		client,
 		context.Background(),
 		c.OrgOpts.name,
@@ -92,12 +92,12 @@ func (c *workspacesCreateCmd) Run() error {
 	if err != nil {
 		return err
 	}
-	if w == nil {
+	if workspace == nil {
 		return errors.New("workspace and error both nil")
 	}
 	output(c.w, WorkspacesCreateCommandResult{
-		ID:          w.ID,
-		Description: w.Description,
+		ID:          workspace.ID,
+		Description: workspace.Description,
 	})
 	return nil
 }
