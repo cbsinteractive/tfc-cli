@@ -52,6 +52,11 @@ func (c *workspacesVCSShowCmd) Init(args []string) error {
 	return nil
 }
 
+type VCSRepoInfo struct {
+	Identifier string `json:"identifier"`
+	Branch     string `json:"branch"`
+}
+
 func (c *workspacesVCSShowCmd) Run() error {
 	ctx := context.Background()
 	client, err := tfe.NewClient(&tfe.Config{
@@ -64,12 +69,20 @@ func (c *workspacesVCSShowCmd) Run() error {
 	if err != nil {
 		return err
 	}
+	var d []byte
 	if w.VCSRepo == nil {
-		d, _ := json.Marshal(CommandResult{
+		d, _ = json.Marshal(CommandResult{
 			Result: "VCS repo not set",
 		})
-		d = append(d, '\n')
-		c.w.Write(d)
+	} else {
+		d, _ = json.Marshal(CommandResult{
+			Result: VCSRepoInfo{
+				Identifier: w.VCSRepo.Identifier,
+				Branch:     w.VCSRepo.Branch,
+			},
+		})
 	}
+	d = append(d, '\n')
+	c.w.Write(d)
 	return nil
 }

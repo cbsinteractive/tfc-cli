@@ -52,6 +52,31 @@ func TestWorkspacesVCSShow(t *testing.T) {
 			nil,
 			errors.New("foo"),
 		},
+		{
+			"has VCS info",
+			[]string{"-workspace", "some workspace"},
+			"some org",
+			"some token",
+			"some workspace",
+			"some workspace id",
+			&tfe.Workspace{
+				ID: "some workspace id",
+				VCSRepo: &tfe.VCSRepo{
+					Identifier:   "someorg/somerepo",
+					OAuthTokenID: "someoauthtokenid",
+					Branch:       "somebranch",
+				},
+				WorkingDirectory: "somedirectory",
+			},
+			nil,
+			&CommandResult{
+				Result: VCSRepoInfo{
+					Identifier: "someorg/somerepo",
+					Branch:     "somebranch",
+				},
+			},
+			nil,
+		},
 	}
 	for _, d := range testConfigs {
 		t.Run(d.description, func(t *testing.T) {
@@ -90,9 +115,9 @@ func TestWorkspacesVCSShow(t *testing.T) {
 				assert.EqualError(t, err, d.expectedError.Error())
 			}
 			if d.expectedResultObject != nil {
-				r := CommandResult{}
-				json.Unmarshal(stdBuff.Bytes(), &r)
-				assert.Equal(t, *d.expectedResultObject, r)
+				expectedOutput, _ := json.Marshal(d.expectedResultObject)
+				expectedOutput = append(expectedOutput, '\n')
+				assert.Equal(t, string(expectedOutput), stdBuff.String())
 			} else {
 				assert.Empty(t, stdBuff.String())
 			}
