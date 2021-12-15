@@ -63,9 +63,6 @@ func (c *workspacesShowCmd) Run() error {
 	}
 	w, err := c.deps.client.workspaces.read(client, context.Background(), c.OrgOpts.name, c.WorkspaceOpts.name)
 	if err != nil {
-		if !c.commonOpts.quiet {
-			c.w.Write(newCommandErrorOutput(err))
-		}
 		return err
 	}
 	if w == nil {

@@ -18,13 +18,15 @@ func TestWorkspacesShow(t *testing.T) {
 			Description: "some workspace description",
 		}
 	}
-	newDefaultCommandResult := func() CommandResult {
-		return CommandResult{
-			Result: map[string]interface{}{
-				"id":          "some workspace id",
-				"description": "some workspace description",
+	newDefaultCommandResult := func() string {
+		d, _ := json.Marshal(CommandResult{
+			Result: WorkspacesShowCommandResult{
+				ID:          "some workspace id",
+				Description: "some workspace description",
 			},
-		}
+		})
+		d = append(d, '\n')
+		return string(d)
 	}
 	testConfigs := []struct {
 		description         string
@@ -33,9 +35,9 @@ func TestWorkspacesShow(t *testing.T) {
 		token               string
 		workspace           string
 		workspaceShowResult *tfe.Workspace
-		workspaceShowError  error
+		expectedError       error
 		expectOutput        bool
-		expectedOutput      CommandResult
+		expectedOutput      string
 	}{
 		{
 			"show existing workspace",
@@ -57,7 +59,7 @@ func TestWorkspacesShow(t *testing.T) {
 			newDefaultWorkspace(),
 			nil,
 			false,
-			newDefaultCommandResult(),
+			"unused",
 		},
 		{
 			"show missing workspace",
@@ -68,9 +70,7 @@ func TestWorkspacesShow(t *testing.T) {
 			nil,
 			errors.New("resource not found"),
 			true,
-			CommandResult{
-				Error: "resource not found",
-			},
+			"resource not found\n",
 		},
 	}
 	for _, d := range testConfigs {
@@ -86,7 +86,7 @@ func TestWorkspacesShow(t *testing.T) {
 			mockedOSProxy.On("lookupEnv", "TFC_ORG").Return(d.organization, true)
 			mockedOSProxy.On("lookupEnv", "TFC_TOKEN").Return(d.token, true)
 			mockedWorkspacesProxy := mockWorkspacesProxy{}
-			mockedWorkspacesProxy.On("read", mock.Anything, mock.Anything, d.organization, d.workspace).Return(d.workspaceShowResult, d.workspaceShowError)
+			mockedWorkspacesProxy.On("read", mock.Anything, mock.Anything, d.organization, d.workspace).Return(d.workspaceShowResult, d.expectedError)
 
 			// Code under test
 			err := root(
@@ -101,8 +101,8 @@ func TestWorkspacesShow(t *testing.T) {
 			)
 
 			// Verify
-			if d.workspaceShowError != nil {
-				assert.Same(t, d.workspaceShowError, err)
+			if d.expectedError != nil {
+				assert.Same(t, d.expectedError, err)
 			} else {
 				assert.Nil(t, err)
 			}
@@ -111,10 +111,7 @@ func TestWorkspacesShow(t *testing.T) {
 			if !d.expectOutput {
 				assert.Empty(t, buff.String())
 			} else {
-				var result CommandResult
-				err := json.Unmarshal(buff.Bytes(), &result)
-				assert.Nil(t, err)
-				assert.Equal(t, d.expectedOutput, result)
+				assert.Equal(t, d.expectedOutput, buff.String())
 			}
 		})
 	}
