@@ -1,9 +1,13 @@
 package cmd
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"io"
+
+	"github.com/hashicorp/go-tfe"
 )
 
 type workspacesVCSShowCmd struct {
@@ -49,5 +53,23 @@ func (c *workspacesVCSShowCmd) Init(args []string) error {
 }
 
 func (c *workspacesVCSShowCmd) Run() error {
+	ctx := context.Background()
+	client, err := tfe.NewClient(&tfe.Config{
+		Token: c.OrgOpts.token,
+	})
+	if err != nil {
+		return err
+	}
+	w, err := c.deps.client.workspaces.read(client, ctx, c.OrgOpts.name, c.WorkspaceOpts.name)
+	if err != nil {
+		return err
+	}
+	if w.VCSRepo == nil {
+		d, _ := json.Marshal(CommandResult{
+			Result: "VCS repo not set",
+		})
+		d = append(d, '\n')
+		c.w.Write(d)
+	}
 	return nil
 }
