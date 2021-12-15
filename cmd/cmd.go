@@ -57,11 +57,6 @@ type commonOpts struct {
 	quiet bool
 }
 
-type CommandResult struct {
-	Error  string      `json:"error,omitempty"`
-	Result interface{} `json:"result,omitempty"`
-}
-
 func Execute(options ExecuteOpts) error {
 	return root(
 		options,

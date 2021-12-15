@@ -56,9 +56,6 @@ func (c *workspacesShowCmd) Run() error {
 		Token: c.OrgOpts.token,
 	})
 	if err != nil {
-		if !c.commonOpts.quiet {
-			c.w.Write(newCommandErrorOutput(err))
-		}
 		return err
 	}
 	w, err := c.deps.client.workspaces.read(client, context.Background(), c.OrgOpts.name, c.WorkspaceOpts.name)
@@ -66,18 +63,14 @@ func (c *workspacesShowCmd) Run() error {
 		return err
 	}
 	if w == nil {
-		err := errors.New("workspace and error both nil")
-		if !c.commonOpts.quiet {
-			c.w.Write(newCommandErrorOutput(err))
-		}
-		return err
+		return errors.New("workspace and error both nil")
 	}
 	if c.commonOpts.quiet {
 		return nil
 	}
-	c.w.Write(newCommandResultOutput(WorkspacesShowCommandResult{
+	output(c.w, WorkspacesShowCommandResult{
 		ID:          w.ID,
 		Description: w.Description,
-	}))
+	})
 	return nil
 }

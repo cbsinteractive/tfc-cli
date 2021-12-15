@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/hashicorp/go-tfe"
@@ -85,7 +86,9 @@ func TestStateVersionsCurrentGetOutput(t *testing.T) {
 
 			// Verify
 			assert.Nil(t, err)
-			assert.Contains(t, buff.String(), d.expectedValue)
+			r := CommandResult{}
+			json.Unmarshal(buff.Bytes(), &r)
+			assert.Equal(t, d.expectedValue, r.Result.(map[string]interface{})["value"].(string))
 		})
 	}
 }

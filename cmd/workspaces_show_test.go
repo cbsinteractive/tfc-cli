@@ -70,7 +70,7 @@ func TestWorkspacesShow(t *testing.T) {
 			nil,
 			errors.New("resource not found"),
 			"",
-			"resource not found\n",
+			"{\"error\":\"resource not found\"}\n",
 		},
 	}
 	for _, d := range testConfigs {

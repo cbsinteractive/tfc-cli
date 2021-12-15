@@ -36,17 +36,13 @@ func (c *workspacesCreateCmd) Name() string {
 
 func (c *workspacesCreateCmd) Init(args []string) error {
 	if err := c.fs.Parse(args); err != nil {
-		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	if err := processCommonInputs(&c.OrgOpts.token, &c.OrgOpts.name, c.deps.os.lookupEnv); err != nil {
-		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	if c.WorkspaceOpts.name == "" {
-		err := errors.New("-workspace argument is required")
-		c.w.Write(newCommandErrorOutput(err))
-		return err
+		return errors.New("-workspace argument is required")
 	}
 	return nil
 }
@@ -56,7 +52,6 @@ func (c *workspacesCreateCmd) Run() error {
 		Token: c.OrgOpts.token,
 	})
 	if err != nil {
-		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	description := fmt.Sprintf("Created by %s", c.appName)
@@ -65,13 +60,10 @@ func (c *workspacesCreateCmd) Run() error {
 		Description: &description,
 	})
 	if err != nil {
-		c.w.Write(newCommandErrorOutput(err))
 		return err
 	}
 	if workspace == nil {
-		err := errors.New("workspace and error both nil")
-		c.w.Write(newCommandErrorOutput(err))
-		return err
+		return errors.New("workspace and error both nil")
 	}
 	return nil
 }

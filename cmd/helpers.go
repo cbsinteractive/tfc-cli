@@ -22,20 +22,28 @@ func variableFromKey(client *tfe.Client, proxy clientProxy, ctx context.Context,
 	return nil, fmt.Errorf("variable %s not found", key)
 }
 
-func newCommandResultOutput(v interface{}) []byte {
-	d, _ := json.Marshal(CommandResult{
-		Result: v,
-	})
-	return append(d, '\n')
+type CommandResult struct {
+	Result interface{} `json:"result,omitempty"`
 }
 
-func newCommandErrorOutput(err error) []byte {
-	d, _ := json.Marshal(CommandResult{
-		Error: err.Error(),
-	})
-	return append(d, '\n')
+func output(w io.Writer, result interface{}) {
+	r := CommandResult{
+		Result: result,
+	}
+	d, _ := json.Marshal(r)
+	d = append(d, '\n')
+	w.Write(d)
+}
+
+type CommandError struct {
+	Error string `json:"error,omitempty"`
 }
 
 func outputError(w io.Writer, err error) {
-	w.Write([]byte(fmt.Sprintf("%s\n", err)))
+	r := CommandError{
+		Error: err.Error(),
+	}
+	d, _ := json.Marshal(r)
+	d = append(d, '\n')
+	w.Write(d)
 }
