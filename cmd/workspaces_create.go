@@ -10,6 +10,11 @@ import (
 	"github.com/hashicorp/go-tfe"
 )
 
+type WorkspacesCreateCommandResult struct {
+	ID          string `json:"id"`
+	Description string `json:"description"`
+}
+
 type workspacesCreateCmd struct {
 	fs   *flag.FlagSet
 	deps dependencyProxies
@@ -26,6 +31,10 @@ func newWorkspacesCreateCmd(deps dependencyProxies, w io.Writer, appName string)
 		w:    w,
 	}
 	setCommonFlagsetOptions(c.fs, &c.OrgOpts, &c.WorkspaceOpts)
+	c.fs.StringVar(&c.WorkspaceOpts.workingDirectory, "working-directory", "", string(WorkingDirectoryUsage))
+	c.fs.StringVar(&c.WorkspaceOpts.vcsIdentifier, "vcs-identifier", "", string(VCSIdentifierUsage))
+	c.fs.StringVar(&c.WorkspaceOpts.vcsBranch, "vcs-branch", "", string(VCSBranchUsage))
+	c.fs.StringVar(&c.WorkspaceOpts.vcsOAuthTokenID, "vcs-oauth-token-id", "", string(VCSOAuthTokenIDUsage))
 	c.appName = appName
 	return c
 }
@@ -55,15 +64,40 @@ func (c *workspacesCreateCmd) Run() error {
 		return err
 	}
 	description := fmt.Sprintf("Created by %s", c.appName)
-	workspace, err := c.deps.client.workspaces.create(client, context.Background(), c.OrgOpts.name, tfe.WorkspaceCreateOptions{
-		Name:        &c.WorkspaceOpts.name,
-		Description: &description,
-	})
+	opts := tfe.WorkspaceCreateOptions{
+		Name:             &c.WorkspaceOpts.name,
+		Description:      &description,
+		WorkingDirectory: &c.WorkspaceOpts.workingDirectory,
+	}
+	if c.WorkspaceOpts.vcsIdentifier != "" {
+		if c.WorkspaceOpts.vcsBranch == "" {
+			return errors.New("VCS identifier is specified but branch name is not")
+		}
+		if c.WorkspaceOpts.vcsOAuthTokenID == "" {
+			return errors.New("VCS identifier is specified but OAuth token ID is not")
+		}
+		vcsOpts := tfe.VCSRepoOptions{
+			Identifier:   &c.WorkspaceOpts.vcsIdentifier,
+			Branch:       &c.WorkspaceOpts.vcsBranch,
+			OAuthTokenID: &c.WorkspaceOpts.vcsOAuthTokenID,
+		}
+		opts.VCSRepo = &vcsOpts
+	}
+	w, err := c.deps.client.workspaces.create(
+		client,
+		context.Background(),
+		c.OrgOpts.name,
+		opts,
+	)
 	if err != nil {
 		return err
 	}
-	if workspace == nil {
+	if w == nil {
 		return errors.New("workspace and error both nil")
 	}
+	output(c.w, WorkspacesCreateCommandResult{
+		ID:          w.ID,
+		Description: w.Description,
+	})
 	return nil
 }
