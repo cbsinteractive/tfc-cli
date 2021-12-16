@@ -59,8 +59,10 @@ tfc-cli workspaces update -workspace foo -description "new description"
 Set workspace VCS configuration:
 
 ```shell
-tfc-cli workspaces update -workspace some-workspace -vcs-identifier some-org/some-repo -vcs-branch some-branch -vcs-oauth-token-id some-oauth-token-id
+tfc-cli workspaces update -workspace foo -vcs-identifier some-org/some-repo -vcs-branch some-branch -vcs-oauth-token-id some-oauth-token-id
 ```
+
+OAuth token IDs can be found at: `https://app.terraform.io/app/[YOUR ORG]/settings/version-control`
 
 Delete a workspace:
 
