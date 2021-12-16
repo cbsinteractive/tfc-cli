@@ -45,6 +45,11 @@ func (m mockWorkspacesProxy) read(client *tfe.Client, ctx context.Context, organ
 	return args.Get(0).(*tfe.Workspace), args.Error(1)
 }
 
+func (m mockWorkspacesProxy) update(client *tfe.Client, ctx context.Context, organization string, workspace string, options tfe.WorkspaceUpdateOptions) (*tfe.Workspace, error) {
+	args := m.Called(client, ctx, organization, workspace, options)
+	return args.Get(0).(*tfe.Workspace), args.Error(1)
+}
+
 type mockWorkspacesVariablesProxy struct {
 	mock.Mock
 }

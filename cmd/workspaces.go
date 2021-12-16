@@ -28,6 +28,7 @@ func (c *WorkspacesCmd) Init(args []string) error {
 		newWorkspacesCreateCmd(c.deps, c.w, c.appName),
 		newWorkspacesDeleteCmd(c.deps, c.w),
 		newWorkspacesShowCmd(c.deps, c.w),
+		newWorkspacesUpdateCmd(c.deps, c.w),
 		newWorkspacesVariablesCmd(c.deps, c.w),
 		newWorkspacesVCSCmd(c.deps, c.w),
 	}

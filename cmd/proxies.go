@@ -39,6 +39,7 @@ type workspacesProxy interface {
 	create(client *tfe.Client, ctx context.Context, organization string, options tfe.WorkspaceCreateOptions) (*tfe.Workspace, error)
 	delete(client *tfe.Client, ctx context.Context, organization string, workspace string) error
 	read(*tfe.Client, context.Context, string, string) (*tfe.Workspace, error)
+	update(client *tfe.Client, ctx context.Context, organization string, workspace string, options tfe.WorkspaceUpdateOptions) (*tfe.Workspace, error)
 }
 
 type workspacesProxyForProduction struct{}
@@ -57,6 +58,10 @@ func (p workspacesProxyForProduction) delete(client *tfe.Client, ctx context.Con
 
 func (p workspacesProxyForProduction) read(client *tfe.Client, ctx context.Context, organization string, workspace string) (*tfe.Workspace, error) {
 	return client.Workspaces.Read(ctx, organization, workspace)
+}
+
+func (p workspacesProxyForProduction) update(client *tfe.Client, ctx context.Context, organization string, workspace string, options tfe.WorkspaceUpdateOptions) (*tfe.Workspace, error) {
+	return client.Workspaces.Update(ctx, organization, workspace, options)
 }
 
 type clientProxy struct {
