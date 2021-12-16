@@ -69,22 +69,12 @@ func (c *workspacesUpdateCmd) Run() error {
 	if err != nil {
 		return err
 	}
-	existingWorkspace, err := c.deps.client.workspaces.read(
-		client,
-		context.Background(),
-		c.OrgOpts.name,
-		c.WorkspaceOpts.name,
-	)
-	if err != nil {
-		return err
-	}
-
-	// Initialize update options from those we just read
-	updateOpts := tfe.WorkspaceUpdateOptions{
-		Description: &existingWorkspace.Description,
-	}
+	updateOpts := tfe.WorkspaceUpdateOptions{}
 	if c.WorkspaceOpts.description != "" {
 		updateOpts.Description = &c.WorkspaceOpts.description
+	}
+	if c.WorkspaceOpts.workingDirectory != "" {
+		updateOpts.WorkingDirectory = &c.WorkspaceOpts.workingDirectory
 	}
 	if c.WorkspaceOpts.vcsIdentifier != "" {
 		updateOpts.VCSRepo = &tfe.VCSRepoOptions{
@@ -93,7 +83,6 @@ func (c *workspacesUpdateCmd) Run() error {
 			OAuthTokenID: &c.WorkspaceOpts.vcsOAuthTokenID,
 		}
 	}
-
 	updatedWorkspace, err := c.deps.client.workspaces.update(
 		client,
 		context.Background(),
@@ -102,7 +91,7 @@ func (c *workspacesUpdateCmd) Run() error {
 		updateOpts,
 	)
 	if err != nil {
-		return nil
+		return err
 	}
 	output(c.writer, WorkspacesUpdateCommandResult{
 		ID:          updatedWorkspace.ID,

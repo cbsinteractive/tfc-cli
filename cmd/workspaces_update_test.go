@@ -22,11 +22,6 @@ func TestWorkspacesUpdate(t *testing.T) {
 		resultErr error
 	}
 
-	type readConfig struct {
-		resultObj *tfe.Workspace
-		resultErr error
-	}
-
 	type vcsConfig struct {
 		identifier   string
 		branch       string
@@ -34,20 +29,26 @@ func TestWorkspacesUpdate(t *testing.T) {
 	}
 
 	type inputConfig struct {
-		args         []string
-		organization string
-		token        string
-		workspace    string
-		description  string
-		vcsConfig    *vcsConfig
+		args             []string
+		organization     string
+		token            string
+		workspace        string
+		description      string
+		workingDirectory string
+		vcsConfig        *vcsConfig
 	}
 
 	newWorkspaceUpdateOptions := func(
 		description string,
+		workingDirectory string,
 		vcsOpts *vcsConfig,
 	) tfe.WorkspaceUpdateOptions {
-		r := tfe.WorkspaceUpdateOptions{
-			Description: &description,
+		r := tfe.WorkspaceUpdateOptions{}
+		if description != "" {
+			r.Description = &description
+		}
+		if workingDirectory != "" {
+			r.WorkingDirectory = &workingDirectory
 		}
 		if vcsOpts != nil {
 			r.VCSRepo = &tfe.VCSRepoOptions{
@@ -62,7 +63,6 @@ func TestWorkspacesUpdate(t *testing.T) {
 	testConfigs := []struct {
 		description  string
 		inputConfig  inputConfig
-		readConfig   *readConfig
 		updateConfig *updateConfig
 		resultConfig *resultConfig
 	}{
@@ -74,13 +74,8 @@ func TestWorkspacesUpdate(t *testing.T) {
 				"sometoken",
 				"someworkspace",
 				"new description",
+				"",
 				nil,
-			},
-			&readConfig{
-				resultObj: &tfe.Workspace{
-					Description: "old description",
-				},
-				resultErr: nil,
 			},
 			&updateConfig{
 				resultObj: &tfe.Workspace{
@@ -105,9 +100,9 @@ func TestWorkspacesUpdate(t *testing.T) {
 				"sometoken",
 				"someworkspace",
 				"",
+				"",
 				nil,
 			},
-			nil,
 			nil,
 			&resultConfig{
 				resultErr: errors.New("VCS identifier is specified but branch name is not"),
@@ -124,9 +119,9 @@ func TestWorkspacesUpdate(t *testing.T) {
 				"sometoken",
 				"someworkspace",
 				"",
+				"",
 				nil,
 			},
-			nil,
 			nil,
 			&resultConfig{
 				resultErr: errors.New("VCS identifier is specified but OAuth token ID is not"),
@@ -143,15 +138,30 @@ func TestWorkspacesUpdate(t *testing.T) {
 				"sometoken",
 				"someworkspace",
 				"",
+				"",
 				&vcsConfig{
 					identifier:   "someorg/somerepo",
 					branch:       "somebranch",
 					oauthTokenID: "sometokenid",
 				},
 			},
-			&readConfig{
+			&updateConfig{
 				resultObj: &tfe.Workspace{},
-				resultErr: nil,
+			},
+			nil,
+		},
+		{
+			"Updates working directory",
+			inputConfig{
+				[]string{
+					"-workspace", "someworkspace", "-working-directory", "somedirectory",
+				},
+				"someorg",
+				"sometoken",
+				"someworkspace",
+				"",
+				"somedirectory",
+				nil,
 			},
 			&updateConfig{
 				resultObj: &tfe.Workspace{},
@@ -173,18 +183,7 @@ func TestWorkspacesUpdate(t *testing.T) {
 			mockedOSProxy.On("lookupEnv", "TFC_ORG").Return(test.inputConfig.organization, true)
 			mockedOSProxy.On("lookupEnv", "TFC_TOKEN").Return(test.inputConfig.token, true)
 			mockedWorkspacesProxy := mockWorkspacesProxy{}
-			if test.readConfig != nil {
-				mockedWorkspacesProxy.On(
-					"read",
-					mock.Anything,
-					mock.Anything,
-					test.inputConfig.organization,
-					test.inputConfig.workspace,
-				).Return(
-					test.readConfig.resultObj,
-					test.readConfig.resultErr,
-				)
-			}
+
 			if test.updateConfig != nil {
 				mockedWorkspacesProxy.On(
 					"update",
@@ -194,6 +193,7 @@ func TestWorkspacesUpdate(t *testing.T) {
 					test.inputConfig.workspace,
 					newWorkspaceUpdateOptions(
 						test.inputConfig.description,
+						test.inputConfig.workingDirectory,
 						test.inputConfig.vcsConfig,
 					),
 				).Return(
