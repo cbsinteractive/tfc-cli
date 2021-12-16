@@ -221,8 +221,10 @@ func TestWorkspacesUpdate(t *testing.T) {
 			if test.resultConfig != nil {
 				if test.resultConfig.resultErr == nil {
 					assert.Nil(t, err)
+					assert.Empty(t, errBuff.String())
 				} else {
 					assert.EqualError(t, err, test.resultConfig.resultErr.Error())
+					assert.NotEmpty(t, errBuff.String())
 				}
 				if test.resultConfig.resultObj != nil {
 					expectedOutput, _ := json.Marshal(test.resultConfig.resultObj)
