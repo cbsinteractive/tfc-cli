@@ -86,6 +86,13 @@ func (c *workspacesUpdateCmd) Run() error {
 	if c.WorkspaceOpts.description != "" {
 		updateOpts.Description = &c.WorkspaceOpts.description
 	}
+	if c.WorkspaceOpts.vcsIdentifier != "" {
+		updateOpts.VCSRepo = &tfe.VCSRepoOptions{
+			Identifier:   &c.WorkspaceOpts.vcsIdentifier,
+			Branch:       &c.WorkspaceOpts.vcsBranch,
+			OAuthTokenID: &c.WorkspaceOpts.vcsOAuthTokenID,
+		}
+	}
 
 	updatedWorkspace, err := c.deps.client.workspaces.update(
 		client,
