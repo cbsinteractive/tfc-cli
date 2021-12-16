@@ -50,6 +50,18 @@ Create a workspace:
 tfc-cli workspaces create -workspace foo
 ```
 
+Update a workspace description:
+
+```shell
+tfc-cli workspaces update -workspace foo -description "new description"
+```
+
+Set workspace VCS configuration:
+
+```shell
+tfc-cli workspaces update -workspace some-workspace -vcs-identifier some-org/some-repo -vcs-branch some-branch -vcs-oauth-token-id some-oauth-token-id
+```
+
 Delete a workspace:
 
 ```shell
