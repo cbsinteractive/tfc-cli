@@ -11,6 +11,11 @@ type WorkspacesCmd struct {
 	appName string
 }
 
+type WorkspacesUpdateCommandResult struct {
+	ID          string `json:"id"`
+	Description string `json:"description"`
+}
+
 func NewWorkspacesCmd(options ExecuteOpts, deps dependencyProxies) *WorkspacesCmd {
 	return &WorkspacesCmd{
 		appName: options.AppName,
@@ -28,7 +33,12 @@ func (c *WorkspacesCmd) Init(args []string) error {
 		newWorkspacesCreateCmd(c.deps, c.w, c.appName),
 		newWorkspacesDeleteCmd(c.deps, c.w),
 		newWorkspacesShowCmd(c.deps, c.w),
-		newWorkspacesUpdateCmd(c.deps, c.w),
+		newWorkspacesSetDescriptionCmd(c.deps, c.w),
+		newWorkspacesUnsetDescriptionCmd(c.deps, c.w),
+		newWorkspacesSetWorkingDirectoryCmd(c.deps, c.w),
+		newWorkspacesUnsetWorkingDirectoryCmd(c.deps, c.w),
+		newWorkspacesSetVCSBranchCmd(c.deps, c.w),
+		newWorkspacesUnsetVCSBranchCmd(c.deps, c.w),
 		newWorkspacesVariablesCmd(c.deps, c.w),
 		newWorkspacesVCSCmd(c.deps, c.w),
 	}

@@ -50,6 +50,11 @@ func (m mockWorkspacesProxy) update(client *tfe.Client, ctx context.Context, org
 	return args.Get(0).(*tfe.Workspace), args.Error(1)
 }
 
+func (m mockWorkspacesProxy) removeVCSConnection(client *tfe.Client, ctx context.Context, organization string, workspace string) (*tfe.Workspace, error) {
+	args := m.Called(client, ctx, organization, workspace)
+	return args.Get(0).(*tfe.Workspace), args.Error(1)
+}
+
 type mockWorkspacesVariablesProxy struct {
 	mock.Mock
 }

@@ -31,10 +31,6 @@ func newWorkspacesCreateCmd(deps dependencyProxies, w io.Writer, appName string)
 		w:    w,
 	}
 	setCommonFlagsetOptions(c.fs, &c.OrgOpts, &c.WorkspaceOpts)
-	c.fs.StringVar(&c.WorkspaceOpts.workingDirectory, "working-directory", "", string(WorkingDirectoryUsage))
-	c.fs.StringVar(&c.WorkspaceOpts.vcsIdentifier, "vcs-identifier", "", string(VCSIdentifierUsage))
-	c.fs.StringVar(&c.WorkspaceOpts.vcsBranch, "vcs-branch", "", string(VCSBranchUsage))
-	c.fs.StringVar(&c.WorkspaceOpts.vcsOAuthTokenID, "vcs-oauth-token-id", "", string(VCSOAuthTokenIDUsage))
 	c.appName = appName
 	return c
 }
@@ -65,23 +61,8 @@ func (c *workspacesCreateCmd) Run() error {
 	}
 	description := fmt.Sprintf("Created by %s", c.appName)
 	opts := tfe.WorkspaceCreateOptions{
-		Name:             &c.WorkspaceOpts.name,
-		Description:      &description,
-		WorkingDirectory: &c.WorkspaceOpts.workingDirectory,
-	}
-	if c.WorkspaceOpts.vcsIdentifier != "" {
-		if c.WorkspaceOpts.vcsBranch == "" {
-			return errors.New("VCS identifier is specified but branch name is not")
-		}
-		if c.WorkspaceOpts.vcsOAuthTokenID == "" {
-			return errors.New("VCS identifier is specified but OAuth token ID is not")
-		}
-		vcsOpts := tfe.VCSRepoOptions{
-			Identifier:   &c.WorkspaceOpts.vcsIdentifier,
-			Branch:       &c.WorkspaceOpts.vcsBranch,
-			OAuthTokenID: &c.WorkspaceOpts.vcsOAuthTokenID,
-		}
-		opts.VCSRepo = &vcsOpts
+		Name:        &c.WorkspaceOpts.name,
+		Description: &description,
 	}
 	workspace, err := c.deps.client.workspaces.create(
 		client,

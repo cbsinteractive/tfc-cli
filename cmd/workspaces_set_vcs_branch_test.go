@@ -11,10 +11,15 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestWorkspacesUpdate(t *testing.T) {
-	type resultConfig struct {
-		resultObj *CommandResult
-		resultErr error
+func TestWorkspacesSetVCSBranch(t *testing.T) {
+	type inputConfig struct {
+		args            []string
+		organization    string
+		token           string
+		workspace       string
+		vcsIdentifier   string
+		vcsBranch       string
+		vcsOAuthTokenID string
 	}
 
 	type updateConfig struct {
@@ -22,42 +27,23 @@ func TestWorkspacesUpdate(t *testing.T) {
 		resultErr error
 	}
 
-	type vcsConfig struct {
-		identifier   string
-		branch       string
-		oauthTokenID string
-	}
-
-	type inputConfig struct {
-		args             []string
-		organization     string
-		token            string
-		workspace        string
-		description      string
-		workingDirectory string
-		vcsConfig        *vcsConfig
+	type resultConfig struct {
+		resultObj *CommandResult
+		resultErr error
 	}
 
 	newWorkspaceUpdateOptions := func(
-		description string,
-		workingDirectory string,
-		vcsOpts *vcsConfig,
+		vcsIdentifier string,
+		vcsBranch string,
+		vcsOAuthTokenID string,
 	) tfe.WorkspaceUpdateOptions {
-		r := tfe.WorkspaceUpdateOptions{}
-		if description != "" {
-			r.Description = &description
+		return tfe.WorkspaceUpdateOptions{
+			VCSRepo: &tfe.VCSRepoOptions{
+				Branch:       &vcsBranch,
+				Identifier:   &vcsIdentifier,
+				OAuthTokenID: &vcsOAuthTokenID,
+			},
 		}
-		if workingDirectory != "" {
-			r.WorkingDirectory = &workingDirectory
-		}
-		if vcsOpts != nil {
-			r.VCSRepo = &tfe.VCSRepoOptions{
-				Identifier:   &vcsOpts.identifier,
-				Branch:       &vcsOpts.branch,
-				OAuthTokenID: &vcsOpts.oauthTokenID,
-			}
-		}
-		return r
 	}
 
 	testConfigs := []struct {
@@ -67,111 +53,98 @@ func TestWorkspacesUpdate(t *testing.T) {
 		resultConfig *resultConfig
 	}{
 		{
-			"Updates description",
+			"Updates VCS repo options",
 			inputConfig{
-				[]string{"-workspace", "someworkspace", "-description", "new description"},
+				[]string{
+					"-workspace", "someworkspace",
+					"-identifier", "some/repo",
+					"-branch", "some-branch",
+					"-oauth-token-id", "some-token-id",
+				},
 				"someorg",
 				"sometoken",
 				"someworkspace",
-				"new description",
-				"",
-				nil,
+				"some/repo",
+				"some-branch",
+				"some-token-id",
 			},
 			&updateConfig{
 				resultObj: &tfe.Workspace{
 					ID:          "foo",
-					Description: "new description",
+					Description: "some description",
 				},
 			},
 			&resultConfig{
 				resultObj: &CommandResult{
 					Result: WorkspacesUpdateCommandResult{
 						ID:          "foo",
-						Description: "new description",
+						Description: "some description",
 					},
 				},
 			},
 		},
 		{
-			"VCS branch not specified",
+			"-identifier argument is required",
 			inputConfig{
-				[]string{"-workspace", "someworkspace", "-vcs-identifier", "someorg/somerepo"},
+				[]string{
+					"-workspace", "someworkspace",
+				},
 				"someorg",
 				"sometoken",
 				"someworkspace",
-				"",
-				"",
-				nil,
+				"not used",
+				"not used",
+				"not used",
 			},
 			nil,
 			&resultConfig{
-				resultErr: errors.New("VCS identifier is specified but branch name is not"),
+				resultErr: errors.New("-identifier argument is required"),
 			},
 		},
 		{
-			"VCS OAuth token ID not specified",
+			"-branch argument is required",
 			inputConfig{
 				[]string{
-					"-workspace", "someworkspace", "-vcs-identifier", "someorg/somerepo",
-					"-vcs-branch", "somebranch",
+					"-workspace", "someworkspace",
+					"-identifier", "some/repo",
 				},
 				"someorg",
 				"sometoken",
 				"someworkspace",
-				"",
-				"",
-				nil,
+				"not used",
+				"not used",
+				"not used",
 			},
 			nil,
 			&resultConfig{
-				resultErr: errors.New("VCS identifier is specified but OAuth token ID is not"),
+				resultErr: errors.New("-branch argument is required"),
 			},
 		},
 		{
-			"Updates VCS settings",
+			"-oauth-token-id argument is required",
 			inputConfig{
 				[]string{
-					"-workspace", "someworkspace", "-vcs-identifier", "someorg/somerepo",
-					"-vcs-branch", "somebranch", "-vcs-oauth-token-id", "sometokenid",
+					"-workspace", "someworkspace",
+					"-identifier", "some/repo",
+					"-branch", "some-branch",
 				},
 				"someorg",
 				"sometoken",
 				"someworkspace",
-				"",
-				"",
-				&vcsConfig{
-					identifier:   "someorg/somerepo",
-					branch:       "somebranch",
-					oauthTokenID: "sometokenid",
-				},
-			},
-			&updateConfig{
-				resultObj: &tfe.Workspace{},
+				"not used",
+				"not used",
+				"not used",
 			},
 			nil,
-		},
-		{
-			"Updates working directory",
-			inputConfig{
-				[]string{
-					"-workspace", "someworkspace", "-working-directory", "somedirectory",
-				},
-				"someorg",
-				"sometoken",
-				"someworkspace",
-				"",
-				"somedirectory",
-				nil,
+			&resultConfig{
+				resultErr: errors.New("-oauth-token-id argument is required"),
 			},
-			&updateConfig{
-				resultObj: &tfe.Workspace{},
-			},
-			nil,
 		},
 	}
+
 	for _, test := range testConfigs {
 		t.Run(test.description, func(t *testing.T) {
-			args := append([]string{"workspaces", "update"}, test.inputConfig.args...)
+			args := append([]string{"workspaces", "set-vcs-branch"}, test.inputConfig.args...)
 			var stdBuff, errBuff bytes.Buffer
 			options := ExecuteOpts{
 				AppName: "tfc-cli",
@@ -192,9 +165,9 @@ func TestWorkspacesUpdate(t *testing.T) {
 					test.inputConfig.organization,
 					test.inputConfig.workspace,
 					newWorkspaceUpdateOptions(
-						test.inputConfig.description,
-						test.inputConfig.workingDirectory,
-						test.inputConfig.vcsConfig,
+						test.inputConfig.vcsIdentifier,
+						test.inputConfig.vcsBranch,
+						test.inputConfig.vcsOAuthTokenID,
 					),
 				).Return(
 					test.updateConfig.resultObj,

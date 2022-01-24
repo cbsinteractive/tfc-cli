@@ -19,22 +19,22 @@ var (
 type Usage string
 
 const (
-	OrgUsage                  Usage = "Organization name"
-	TokenUsage                Usage = "Organization token"
-	WorkspaceUsage            Usage = "Workspace name"
-	WorkspaceDescriptionUsage Usage = "Workspace description"
-	WorkingDirectoryUsage     Usage = "The directory that Terraform will execute within"
-	OutputNameUsage           Usage = "Output variable name"
-	QuietUsage                Usage = "Quiet output"
-	VariableKeyUsage          Usage = "Variable key"
-	VariableValueUsage        Usage = "Variable value"
-	VariableDescriptionUsage  Usage = "Variable description"
-	VariableCategoryUsage     Usage = "Variable category"
-	VariableHCLUsage          Usage = "Indicates whether variable value is HCL-formatted"
-	VariableSensitiveUsage    Usage = "Indicates whether variable is sensitive"
-	VCSIdentifierUsage        Usage = "The associated VCS repository (org/repo)"
-	VCSBranchUsage            Usage = "VCS branch name"
-	VCSOAuthTokenIDUsage      Usage = "VCS OAuth token ID"
+	OrgUsage                       Usage = "Organization name"
+	TokenUsage                     Usage = "Organization token"
+	WorkspaceUsage                 Usage = "Workspace name"
+	WorkspaceDescriptionUsage      Usage = "Workspace description"
+	WorkspaceWorkingDirectoryUsage Usage = "The directory that Terraform will execute within"
+	OutputNameUsage                Usage = "Output variable name"
+	QuietUsage                     Usage = "Quiet output"
+	VariableKeyUsage               Usage = "Variable key"
+	VariableValueUsage             Usage = "Variable value"
+	VariableDescriptionUsage       Usage = "Variable description"
+	VariableCategoryUsage          Usage = "Variable category"
+	VariableHCLUsage               Usage = "Indicates whether variable value is HCL-formatted"
+	VariableSensitiveUsage         Usage = "Indicates whether variable is sensitive"
+	VCSIdentifierUsage             Usage = "The associated VCS repository (org/repo)"
+	VCSBranchUsage                 Usage = "VCS branch name"
+	VCSOAuthTokenIDUsage           Usage = "VCS OAuth token ID"
 )
 
 type Runner interface {
@@ -49,12 +49,7 @@ type OrgOpts struct {
 }
 
 type WorkspaceOpts struct {
-	name             string
-	description      string
-	workingDirectory string
-	vcsIdentifier    string
-	vcsBranch        string
-	vcsOAuthTokenID  string
+	name string
 }
 
 type ExecuteOpts struct {

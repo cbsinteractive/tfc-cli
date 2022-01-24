@@ -50,16 +50,22 @@ Create a workspace:
 tfc-cli workspaces create -workspace foo
 ```
 
-Update a workspace description:
+Update workspace description:
 
 ```shell
-tfc-cli workspaces update -workspace foo -description "new description"
+tfc-cli workspaces set-description -workspace foo -description "new description"
+```
+
+Update workspace working directory:
+
+```shell
+tfc-cli workspaces set-working-directory -workspace foo -working-directory "terraform"
 ```
 
 Set workspace VCS configuration:
 
 ```shell
-tfc-cli workspaces update -workspace foo -vcs-identifier some-org/some-repo -vcs-branch some-branch -vcs-oauth-token-id some-oauth-token-id
+tfc-cli workspaces set-vcs-branch -workspace foo -identifier some-org/some-repo -branch some-branch -oauth-token-id some-oauth-token-id
 ```
 
 OAuth token IDs can be found at: `https://app.terraform.io/app/[YOUR ORG]/settings/version-control`

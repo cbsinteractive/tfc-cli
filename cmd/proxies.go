@@ -40,6 +40,7 @@ type workspacesProxy interface {
 	delete(client *tfe.Client, ctx context.Context, organization string, workspace string) error
 	read(*tfe.Client, context.Context, string, string) (*tfe.Workspace, error)
 	update(client *tfe.Client, ctx context.Context, organization string, workspace string, options tfe.WorkspaceUpdateOptions) (*tfe.Workspace, error)
+	removeVCSConnection(client *tfe.Client, ctx context.Context, organization string, workspace string) (*tfe.Workspace, error)
 }
 
 type workspacesProxyForProduction struct{}
@@ -62,6 +63,10 @@ func (p workspacesProxyForProduction) read(client *tfe.Client, ctx context.Conte
 
 func (p workspacesProxyForProduction) update(client *tfe.Client, ctx context.Context, organization string, workspace string, options tfe.WorkspaceUpdateOptions) (*tfe.Workspace, error) {
 	return client.Workspaces.Update(ctx, organization, workspace, options)
+}
+
+func (p workspacesProxyForProduction) removeVCSConnection(client *tfe.Client, ctx context.Context, organization string, workspace string) (*tfe.Workspace, error) {
+	return client.Workspaces.RemoveVCSConnection(ctx, organization, workspace)
 }
 
 type clientProxy struct {
