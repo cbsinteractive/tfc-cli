@@ -34,6 +34,7 @@ func (c *WorkspacesCmd) Init(args []string) error {
 		newWorkspacesDeleteCmd(c.deps, c.w),
 		newWorkspacesShowCmd(c.deps, c.w),
 		newWorkspacesSetDescriptionCmd(c.deps, c.w),
+		newWorkspacesSetAutoApplyCmd(c.deps, c.w),
 		newWorkspacesUnsetDescriptionCmd(c.deps, c.w),
 		newWorkspacesSetWorkingDirectoryCmd(c.deps, c.w),
 		newWorkspacesUnsetWorkingDirectoryCmd(c.deps, c.w),

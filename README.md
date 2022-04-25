@@ -44,6 +44,8 @@ docker run -e TFC_ORG -e TFC_TOKEN --pull always --rm frostedcarbon/tfc-cli:late
 
 ## Available Commands
 
+Note the `-<variable>=<bool>` syntax for boolean settings. This is required.
+
 Create a workspace:
 
 ```shell
@@ -54,6 +56,12 @@ Update workspace description:
 
 ```shell
 tfc-cli workspaces set-description -workspace foo -description "new description"
+```
+
+Update workspace auto-apply setting:
+
+```shell
+tfc-cli workspaces set-auto-apply -workspace foo -auto-apply=true
 ```
 
 Update workspace working directory:
@@ -93,8 +101,6 @@ Make a workspace variable sensitive:
 ```shell
 tfc-cli workspaces variables update sensitive -workspace foo -key bar -sensitive=true
 ```
-
-Note the `-sensitive=<bool>` syntax. This is required.
 
 Delete a workspace variable:
 

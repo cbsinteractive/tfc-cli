@@ -23,6 +23,7 @@ const (
 	TokenUsage                     Usage = "Organization token"
 	WorkspaceUsage                 Usage = "Workspace name"
 	WorkspaceDescriptionUsage      Usage = "Workspace description"
+	WorkspaceAutoApplyUsage        Usage = "Workspace auto apply setting"
 	WorkspaceWorkingDirectoryUsage Usage = "The directory that Terraform will execute within"
 	OutputNameUsage                Usage = "Output variable name"
 	QuietUsage                     Usage = "Quiet output"
