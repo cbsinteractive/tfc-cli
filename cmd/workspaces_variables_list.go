@@ -69,7 +69,7 @@ func (c *WorkspacesVariablesListCmd) Run() error {
 	if err != nil {
 		return err
 	}
-	l, err := c.deps.client.workspacesCommands.variables.list(client, ctx, w.ID, tfe.VariableListOptions{})
+	l, err := c.deps.client.workspacesCommands.variables.list(client, ctx, w.ID, &tfe.VariableListOptions{})
 	if err != nil {
 		return err
 	}

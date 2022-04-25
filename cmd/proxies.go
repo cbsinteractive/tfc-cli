@@ -32,7 +32,7 @@ func newStateVersionsProxy() stateVersionsProxyForProduction {
 }
 
 func (c stateVersionsProxyForProduction) currentWithOptions(client *tfe.Client, ctx context.Context, workspaceID string, options *tfe.StateVersionCurrentOptions) (*tfe.StateVersion, error) {
-	return client.StateVersions.CurrentWithOptions(ctx, workspaceID, options)
+	return client.StateVersions.ReadCurrentWithOptions(ctx, workspaceID, options)
 }
 
 type workspacesProxy interface {
@@ -84,7 +84,7 @@ func newWorkspacesCommands() workspacesCommands {
 type workspacesVariablesProxy interface {
 	create(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.VariableCreateOptions) (*tfe.Variable, error)
 	delete(client *tfe.Client, ctx context.Context, workspaceID string, variableID string) error
-	list(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.VariableListOptions) (*tfe.VariableList, error)
+	list(client *tfe.Client, ctx context.Context, workspaceID string, options *tfe.VariableListOptions) (*tfe.VariableList, error)
 	read(client *tfe.Client, ctx context.Context, workspaceID string, variableID string) (*tfe.Variable, error)
 	update(client *tfe.Client, ctx context.Context, workspaceID string, variableID string, options tfe.VariableUpdateOptions) (*tfe.Variable, error)
 }
@@ -99,7 +99,7 @@ func (p workspacesVariablesProxyForProduction) delete(client *tfe.Client, ctx co
 	return client.Variables.Delete(ctx, workspaceID, variableID)
 }
 
-func (p workspacesVariablesProxyForProduction) list(client *tfe.Client, ctx context.Context, workspaceID string, opts tfe.VariableListOptions) (*tfe.VariableList, error) {
+func (p workspacesVariablesProxyForProduction) list(client *tfe.Client, ctx context.Context, workspaceID string, opts *tfe.VariableListOptions) (*tfe.VariableList, error) {
 	return client.Variables.List(ctx, workspaceID, opts)
 }
 

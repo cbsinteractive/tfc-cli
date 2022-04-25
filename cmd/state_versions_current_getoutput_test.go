@@ -70,7 +70,14 @@ func TestStateVersionsCurrentGetOutput(t *testing.T) {
 			mockedWorkspacesProxy := mockWorkspacesProxy{}
 			mockedWorkspacesProxy.On("read", mock.Anything, mock.Anything, d.organization, d.workspace).Return(d.workspaceReadResult, d.workspaceReadError)
 			mockedStateVersionsProxy := mockStateVersionsProxy{}
-			mockedStateVersionsProxy.On("currentWithOptions", mock.Anything, mock.Anything, d.workspaceID, &tfe.StateVersionCurrentOptions{Include: "outputs"}).Return(d.currentWithOptionsResult, d.currentWithOptionsError)
+			mockedStateVersionsProxy.On(
+				"currentWithOptions",
+				mock.Anything,
+				mock.Anything,
+				d.workspaceID,
+				&tfe.StateVersionCurrentOptions{
+					Include: []tfe.StateVersionIncludeOpt{"outputs"},
+				}).Return(d.currentWithOptionsResult, d.currentWithOptionsError)
 			// Code under test
 			err := root(
 				options,

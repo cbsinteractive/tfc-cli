@@ -10,7 +10,7 @@ import (
 )
 
 func variableFromKey(client *tfe.Client, proxy clientProxy, ctx context.Context, workspaceID string, key string) (*tfe.Variable, error) {
-	v, err := proxy.workspacesCommands.variables.list(client, ctx, workspaceID, tfe.VariableListOptions{})
+	v, err := proxy.workspacesCommands.variables.list(client, ctx, workspaceID, &tfe.VariableListOptions{})
 	if err != nil {
 		return nil, err
 	}

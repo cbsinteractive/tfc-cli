@@ -82,7 +82,7 @@ func (c *StateVersionsCurrentGetOutputCmd) Run() error {
 		client,
 		ctx,
 		w.ID,
-		&tfe.StateVersionCurrentOptions{Include: "outputs"},
+		&tfe.StateVersionCurrentOptions{Include: []tfe.StateVersionIncludeOpt{"outputs"}},
 	)
 	if err != nil {
 		return err

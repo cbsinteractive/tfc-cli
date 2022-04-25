@@ -69,7 +69,7 @@ func (m mockWorkspacesVariablesProxy) delete(client *tfe.Client, ctx context.Con
 	return args.Error(0)
 }
 
-func (m mockWorkspacesVariablesProxy) list(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.VariableListOptions) (*tfe.VariableList, error) {
+func (m mockWorkspacesVariablesProxy) list(client *tfe.Client, ctx context.Context, workspaceID string, options *tfe.VariableListOptions) (*tfe.VariableList, error) {
 	args := m.Called(client, ctx, workspaceID, options)
 	return args.Get(0).(*tfe.VariableList), args.Error(1)
 }
