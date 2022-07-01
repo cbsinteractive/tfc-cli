@@ -11,8 +11,9 @@ import (
 )
 
 type WorkspacesCreateCommandResult struct {
-	ID          string `json:"id"`
-	Description string `json:"description"`
+	ID               string `json:"id"`
+	Description      string `json:"description"`
+	TerraformVersion string `json:"terraform-version"`
 }
 
 type workspacesCreateCmd struct {
@@ -32,6 +33,7 @@ func newWorkspacesCreateCmd(deps dependencyProxies, w io.Writer, appName string)
 	}
 	setCommonFlagsetOptions(c.fs, &c.OrgOpts, &c.WorkspaceOpts)
 	c.appName = appName
+	c.fs.StringVar(&c.WorkspaceOpts.terraformVersion, "terraformVersion", "", string(WorkspaceTerraformVersionUsage))
 	return c
 }
 
@@ -64,6 +66,9 @@ func (c *workspacesCreateCmd) Run() error {
 		Name:        &c.WorkspaceOpts.name,
 		Description: &description,
 	}
+	if len(c.WorkspaceOpts.terraformVersion) > 0 {
+		opts.TerraformVersion = &c.WorkspaceOpts.terraformVersion
+	}
 	workspace, err := c.deps.client.workspaces.create(
 		client,
 		context.Background(),
@@ -77,8 +82,9 @@ func (c *workspacesCreateCmd) Run() error {
 		return errors.New("workspace and error both nil")
 	}
 	output(c.w, WorkspacesCreateCommandResult{
-		ID:          workspace.ID,
-		Description: workspace.Description,
+		ID:               workspace.ID,
+		Description:      workspace.Description,
+		TerraformVersion: workspace.TerraformVersion,
 	})
 	return nil
 }

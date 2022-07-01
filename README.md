@@ -52,6 +52,12 @@ Create a workspace:
 tfc-cli workspaces create -workspace foo
 ```
 
+Create a workspace set to use a specific version of Terraform:
+
+```shell
+tfc-cli workspaces create -workspace foo -terraformVersion 1.2.3
+```
+
 Update workspace description:
 
 ```shell
