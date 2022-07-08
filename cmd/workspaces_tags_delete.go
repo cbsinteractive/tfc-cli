@@ -9,35 +9,35 @@ import (
 	"github.com/hashicorp/go-tfe"
 )
 
-type TagCreateOpts struct {
+type TagDeleteOpts struct {
 	tag string
 }
 
-type workspacesTagsCreateCmd struct {
+type workspacesTagsDeleteCmd struct {
 	fs   *flag.FlagSet
 	deps dependencyProxies
 	OrgOpts
 	WorkspaceOpts
-	TagCreateOpts
+	TagDeleteOpts
 	w io.Writer
 }
 
-func newWorkspacesTagsCreateCmd(deps dependencyProxies, w io.Writer) *workspacesTagsCreateCmd {
-	c := &workspacesTagsCreateCmd{
-		fs:   flag.NewFlagSet("create", flag.ContinueOnError),
+func newWorkspacesTagsDeleteCmd(deps dependencyProxies, w io.Writer) *workspacesTagsDeleteCmd {
+	c := &workspacesTagsDeleteCmd{
+		fs:   flag.NewFlagSet("delete", flag.ContinueOnError),
 		deps: deps,
 		w:    w,
 	}
 	setCommonFlagsetOptions(c.fs, &c.OrgOpts, &c.WorkspaceOpts)
-	c.fs.StringVar(&c.TagCreateOpts.tag, "tag", "", string(WorkspaceTagUsage))
+	c.fs.StringVar(&c.TagDeleteOpts.tag, "tag", "", string(WorkspaceTagUsage))
 	return c
 }
 
-func (c *workspacesTagsCreateCmd) Name() string {
+func (c *workspacesTagsDeleteCmd) Name() string {
 	return c.fs.Name()
 }
 
-func (c *workspacesTagsCreateCmd) Init(args []string) error {
+func (c *workspacesTagsDeleteCmd) Init(args []string) error {
 	if err := c.fs.Parse(args); err != nil {
 		return err
 	}
@@ -51,13 +51,13 @@ func (c *workspacesTagsCreateCmd) Init(args []string) error {
 	if c.WorkspaceOpts.name == "" {
 		return errors.New("-workspace argument is required")
 	}
-	if c.TagCreateOpts.tag == "" {
+	if c.TagDeleteOpts.tag == "" {
 		return errors.New("-tag argument is required")
 	}
 	return nil
 }
 
-func (c *workspacesTagsCreateCmd) Run() error {
+func (c *workspacesTagsDeleteCmd) Run() error {
 	ctx := context.Background()
 	client, err := tfe.NewClient(&tfe.Config{
 		Token: c.OrgOpts.token,
@@ -69,12 +69,12 @@ func (c *workspacesTagsCreateCmd) Run() error {
 	if err != nil {
 		return err
 	}
-	options := tfe.WorkspaceAddTagsOptions{Tags: []*tfe.Tag{
+	options := tfe.WorkspaceRemoveTagsOptions{Tags: []*tfe.Tag{
 		{
-			Name: c.TagCreateOpts.tag,
+			Name: c.TagDeleteOpts.tag,
 		},
 	}}
-	err = c.deps.client.tags.create(client, ctx, w.ID, options)
+	err = c.deps.client.tags.delete(client, ctx, w.ID, options)
 	if err != nil {
 		return err
 	}

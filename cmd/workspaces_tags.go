@@ -28,7 +28,7 @@ func (c *WorkspacesTagsCmd) Init(args []string) error {
 	}
 	runners := []Runner{
 		newWorkspacesTagsCreateCmd(c.deps, c.w),
-		// newWorkspacesTagsDeleteCmd(c.deps, c.w),
+		newWorkspacesTagsDeleteCmd(c.deps, c.w),
 	}
 	return processSubcommand(&c.r, args, runners)
 }
