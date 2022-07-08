@@ -40,6 +40,7 @@ func (c *WorkspacesCmd) Init(args []string) error {
 		newWorkspacesUnsetWorkingDirectoryCmd(c.deps, c.w),
 		newWorkspacesSetVCSBranchCmd(c.deps, c.w),
 		newWorkspacesUnsetVCSBranchCmd(c.deps, c.w),
+		newWorkspacesTagsCmd(c.deps, c.w),
 		newWorkspacesVariablesCmd(c.deps, c.w),
 		newWorkspacesVCSCmd(c.deps, c.w),
 	}
