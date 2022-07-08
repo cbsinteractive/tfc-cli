@@ -82,6 +82,21 @@ func newWorkspacesCommands() workspacesCommands {
 	}
 }
 
+type workspacesTagsProxy interface {
+	create(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.WorkspaceAddTagsOptions) error
+	delete(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.WorkspaceRemoveTagsOptions) error
+}
+
+type workspacesTagsProxyForProduction struct{}
+
+func (p workspacesTagsProxyForProduction) create(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.WorkspaceAddTagsOptions) error {
+	return client.Workspaces.AddTags(ctx, workspaceID, options)
+}
+
+func (p workspacesTagsProxyForProduction) delete(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.WorkspaceRemoveTagsOptions) error {
+	return client.Workspaces.RemoveTags(ctx, workspaceID, options)
+}
+
 type workspacesVariablesProxy interface {
 	create(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.VariableCreateOptions) (*tfe.Variable, error)
 	delete(client *tfe.Client, ctx context.Context, workspaceID string, variableID string) error
@@ -110,21 +125,6 @@ func (p workspacesVariablesProxyForProduction) read(client *tfe.Client, ctx cont
 
 func (p workspacesVariablesProxyForProduction) update(client *tfe.Client, ctx context.Context, workspaceID string, variableID string, opts tfe.VariableUpdateOptions) (*tfe.Variable, error) {
 	return client.Variables.Update(ctx, workspaceID, variableID, opts)
-}
-
-type workspacesTagsProxy interface {
-	create(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.WorkspaceAddTagsOptions) error
-	delete(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.WorkspaceRemoveTagsOptions) error
-}
-
-type workspacesTagsProxyForProduction struct{}
-
-func (p workspacesTagsProxyForProduction) create(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.WorkspaceAddTagsOptions) error {
-	return client.Workspaces.AddTags(ctx, workspaceID, options)
-}
-
-func (p workspacesTagsProxyForProduction) delete(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.WorkspaceRemoveTagsOptions) error {
-	return client.Workspaces.RemoveTags(ctx, workspaceID, options)
 }
 
 type workspacesCommands struct {

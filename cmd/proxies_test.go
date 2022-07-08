@@ -55,6 +55,20 @@ func (m mockWorkspacesProxy) removeVCSConnection(client *tfe.Client, ctx context
 	return args.Get(0).(*tfe.Workspace), args.Error(1)
 }
 
+type mockWorkspacesTagsProxy struct {
+	mock.Mock
+}
+
+func (m mockWorkspacesTagsProxy) create(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.WorkspaceAddTagsOptions) error {
+	args := m.Called(client, ctx, workspaceID, options)
+	return args.Error(0)
+}
+
+func (m mockWorkspacesTagsProxy) delete(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.WorkspaceRemoveTagsOptions) error {
+	args := m.Called(client, ctx, workspaceID, options)
+	return args.Error(0)
+}
+
 type mockWorkspacesVariablesProxy struct {
 	mock.Mock
 }
