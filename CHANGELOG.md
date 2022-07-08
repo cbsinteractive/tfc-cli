@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- New `workspaces set-tag` and `workspaces unset-tag` subcommands.
+
 ## [1.1.0] - 2022-04-25
 
 ### Added
