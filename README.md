@@ -70,6 +70,18 @@ Update workspace working directory:
 tfc-cli workspaces set-working-directory -workspace foo -working-directory "terraform"
 ```
 
+Set a workspace tag:
+
+```shell
+
+```
+
+Unset a workspace tag:
+
+```shell
+
+```
+
 Set workspace VCS configuration:
 
 ```shell
