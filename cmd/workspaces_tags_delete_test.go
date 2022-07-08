@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestWorkspacesTagsCreate(t *testing.T) {
+func TestWorkspacesTagsDelete(t *testing.T) {
 	testConfigs := []struct {
 		description   string
 		args          []string
@@ -21,7 +21,7 @@ func TestWorkspacesTagsCreate(t *testing.T) {
 		expectedError error
 	}{
 		{
-			"add a tag",
+			"remove a tag",
 			[]string{
 				"-workspace",
 				"foo",
@@ -38,7 +38,7 @@ func TestWorkspacesTagsCreate(t *testing.T) {
 	}
 	for _, d := range testConfigs {
 		t.Run(d.description, func(t *testing.T) {
-			args := append([]string{"workspaces", "tags", "create"}, d.args...)
+			args := append([]string{"workspaces", "tags", "delete"}, d.args...)
 			var buff bytes.Buffer
 			options := ExecuteOpts{
 				AppName: "tfc-cli",
@@ -52,11 +52,11 @@ func TestWorkspacesTagsCreate(t *testing.T) {
 			mockWorkspacesProxy.On("read", mock.Anything, mock.Anything, d.organization, d.workspace).Return(&tfe.Workspace{ID: d.workspaceID}, nil)
 			mockedTagsProxy := mockWorkspacesTagsProxy{}
 			mockedTagsProxy.On(
-				"create",
+				"delete",
 				mock.Anything,
 				mock.Anything,
 				d.workspaceID,
-				tfe.WorkspaceAddTagsOptions{
+				tfe.WorkspaceRemoveTagsOptions{
 					Tags: []*tfe.Tag{
 						{
 							Name: d.tag,
