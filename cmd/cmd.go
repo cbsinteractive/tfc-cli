@@ -24,6 +24,7 @@ const (
 	WorkspaceUsage                 Usage = "Workspace name"
 	WorkspaceDescriptionUsage      Usage = "Workspace description"
 	WorkspaceAutoApplyUsage        Usage = "Workspace auto apply setting"
+	WorkspaceTerraformVersionUsage Usage = "The version of Terraform the workspace should run"
 	WorkspaceWorkingDirectoryUsage Usage = "The directory that Terraform will execute within"
 	OutputNameUsage                Usage = "Output variable name"
 	QuietUsage                     Usage = "Quiet output"
@@ -50,7 +51,8 @@ type OrgOpts struct {
 }
 
 type WorkspaceOpts struct {
-	name string
+	name             string
+	terraformVersion string
 }
 
 type ExecuteOpts struct {

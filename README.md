@@ -52,6 +52,12 @@ Create a workspace:
 tfc-cli workspaces create -workspace foo
 ```
 
+Create a workspace set to use a specific version of Terraform:
+
+```shell
+tfc-cli workspaces create -workspace foo -terraformVersion 1.2.3
+```
+
 Update workspace description:
 
 ```shell
@@ -114,7 +120,30 @@ Get current state output variable value:
 tfc-cli stateversions current getoutput -workspace foo -name bar
 ```
 
+## Contributing
+
+Format the code:
+
+```shell
+make fmt
+```
+
+Run checks:
+
+```shell
+make staticcheck
+```
+
+Run unit tests:
+
+```shell
+make test
+```
+
+After pull request approval and merging changes to `main`, make a semantic version tag and push it to GitHub. [goreleaser][] will handle the rest.
+
 [direnv]: https://direnv.net/
 [encrypted secrets]: https://docs.github.com/en/actions/security-guides/encrypted-secrets
 [goenv]: https://github.com/syndbg/goenv
+[goreleaser]: https://goreleaser.com/intro/
 [tfe-go]: https://github.com/hashicorp/go-tfe

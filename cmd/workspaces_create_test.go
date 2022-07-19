@@ -11,19 +11,21 @@ import (
 )
 
 func TestWorkspacesCreate(t *testing.T) {
-	newWorkspaceCreateOptions := (func(name string) tfe.WorkspaceCreateOptions {
+	newWorkspaceCreateOptions := (func(name string, terraformVersion string) tfe.WorkspaceCreateOptions {
 		description := "Created by tfc-cli"
 		opts := tfe.WorkspaceCreateOptions{
-			Name:        &name,
-			Description: &description,
+			Name:             &name,
+			Description:      &description,
+			TerraformVersion: &terraformVersion,
 		}
 		return opts
 	})
-	newDefaultCommandResult := (func() *CommandResult {
+	newDefaultCommandResult := (func(terraformVersion string) *CommandResult {
 		return &CommandResult{
 			Result: WorkspacesCreateCommandResult{
-				ID:          "someid",
-				Description: "some description",
+				ID:               "someid",
+				Description:      "some description",
+				TerraformVersion: terraformVersion,
 			},
 		}
 	})
@@ -33,6 +35,7 @@ func TestWorkspacesCreate(t *testing.T) {
 		organization          string
 		token                 string
 		workspace             string
+		terraformVersion      string
 		workspaceCreateResult *tfe.Workspace
 		workspaceCreateError  error
 		expectedResultObject  *CommandResult
@@ -40,16 +43,18 @@ func TestWorkspacesCreate(t *testing.T) {
 	}{
 		{
 			"workspace created",
-			[]string{"-workspace", "foo"},
+			[]string{"-workspace", "foo", "-terraformVersion", "1.2.3"},
 			"some org",
 			"some token",
 			"foo",
+			"1.2.3", // terraform version
 			&tfe.Workspace{
-				ID:          "someid",
-				Description: "some description",
+				ID:               "someid",
+				Description:      "some description",
+				TerraformVersion: "1.2.3",
 			},
 			nil,
-			newDefaultCommandResult(),
+			newDefaultCommandResult("1.2.3"),
 			nil,
 		},
 	}
@@ -72,7 +77,7 @@ func TestWorkspacesCreate(t *testing.T) {
 				mock.Anything,
 				mock.Anything,
 				d.organization,
-				newWorkspaceCreateOptions(d.workspace),
+				newWorkspaceCreateOptions(d.workspace, d.terraformVersion),
 			).Return(
 				d.workspaceCreateResult,
 				d.workspaceCreateError,
