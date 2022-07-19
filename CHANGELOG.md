@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New `-terraformVersion` option to `workspaces create` subcommand.
 - New `workspaces tags create` and `workspaces tags delete` subcommands.
 
 ## [1.1.0] - 2022-04-25
