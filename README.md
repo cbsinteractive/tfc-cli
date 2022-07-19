@@ -1,6 +1,6 @@
 # Terraform Cloud CLI
 
-A command line utility for interacting with the Terraform Cloud API. Uses [tfe-go][] under the hood.
+A command line utility for interacting with the Terraform Cloud API. Uses [go-tfe][] under the hood.
 
 [![Tests](https://github.com/cbsinteractive/tfc-cli/actions/workflows/tests.yml/badge.svg)](https://github.com/cbsinteractive/tfc-cli/actions/workflows/tests.yml)
 
@@ -76,6 +76,18 @@ Update workspace working directory:
 tfc-cli workspaces set-working-directory -workspace foo -working-directory "terraform"
 ```
 
+Create a workspace tag:
+
+```shell
+tfc-cli workspaces tags create -workspace foo -tag "dev"
+```
+
+Delete a workspace tag:
+
+```shell
+tfc-cli workspaces tags delete -workspace foo -tag "dev"
+```
+
 Set workspace VCS configuration:
 
 ```shell
@@ -145,5 +157,5 @@ After pull request approval and merging changes to `main`, make a semantic versi
 [direnv]: https://direnv.net/
 [encrypted secrets]: https://docs.github.com/en/actions/security-guides/encrypted-secrets
 [goenv]: https://github.com/syndbg/goenv
+[go-tfe]: https://github.com/hashicorp/go-tfe
 [goreleaser]: https://goreleaser.com/intro/
-[tfe-go]: https://github.com/hashicorp/go-tfe

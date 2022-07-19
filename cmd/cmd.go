@@ -24,6 +24,7 @@ const (
 	WorkspaceUsage                 Usage = "Workspace name"
 	WorkspaceDescriptionUsage      Usage = "Workspace description"
 	WorkspaceAutoApplyUsage        Usage = "Workspace auto apply setting"
+	WorkspaceTagUsage              Usage = "The name of a workspace tag"
 	WorkspaceTerraformVersionUsage Usage = "The version of Terraform the workspace should run"
 	WorkspaceWorkingDirectoryUsage Usage = "The directory that Terraform will execute within"
 	OutputNameUsage                Usage = "Output variable name"

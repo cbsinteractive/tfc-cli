@@ -77,8 +77,24 @@ type clientProxy struct {
 
 func newWorkspacesCommands() workspacesCommands {
 	return workspacesCommands{
+		tags:      workspacesTagsProxyForProduction{},
 		variables: workspacesVariablesProxyForProduction{},
 	}
+}
+
+type workspacesTagsProxy interface {
+	create(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.WorkspaceAddTagsOptions) error
+	delete(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.WorkspaceRemoveTagsOptions) error
+}
+
+type workspacesTagsProxyForProduction struct{}
+
+func (p workspacesTagsProxyForProduction) create(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.WorkspaceAddTagsOptions) error {
+	return client.Workspaces.AddTags(ctx, workspaceID, options)
+}
+
+func (p workspacesTagsProxyForProduction) delete(client *tfe.Client, ctx context.Context, workspaceID string, options tfe.WorkspaceRemoveTagsOptions) error {
+	return client.Workspaces.RemoveTags(ctx, workspaceID, options)
 }
 
 type workspacesVariablesProxy interface {
@@ -112,6 +128,7 @@ func (p workspacesVariablesProxyForProduction) update(client *tfe.Client, ctx co
 }
 
 type workspacesCommands struct {
+	tags      workspacesTagsProxy
 	variables workspacesVariablesProxy
 }
 
